@@ -24,7 +24,7 @@
   </a>
 </p>
 
-# rep+
+# :fox_face: rep+
 
 rep+ is a lightweight Firefox DevTools extension inspired by Burp Suite's Repeater, now supercharged with AI. I often need to poke at a few requests without spinning up the full Burp stack, so I built this extension to keep my workflow fast, focused, and intelligent with integrated LLM support.
 
