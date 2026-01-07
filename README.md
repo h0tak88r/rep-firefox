@@ -194,15 +194,21 @@ Firefox install coming soon! 🦊
    ```bash
    git clone https://github.com/bscript/rep.git
    ```
-2. **Open Chrome Extensions**:
-   - Navigate to `chrome://extensions/` in your browser.
-   - Enable **Developer mode** (toggle in the top right corner).
+2. **Open Firefox Debugging**:
+   - Navigate to `about:debugging` in your browser.
+   - Click **This Firefox** in the left sidebar.
 3. **Load the Extension**:
-   - Click **Load unpacked**.
-   - Select the `rep` folder you just cloned.
+   - Click **Load Temporary Add-on...**.
+   - Navigate to the `rep` folder you just cloned.
+   - Select the `manifest.json` file.
 4. **Open DevTools**:
    - Press `F12` or right-click -> Inspect.
    - Look for the **rep+** tab (you might need to click the `>>` overflow menu).
+5. **Grant Permissions** (if needed):
+   - If you see permission errors, go to `about:addons`.
+   - Find **rep+** in the list.
+   - Click the gear icon → **Manage**.
+   - Enable the **webRequest** permission and **Access your data for all web sites** if prompted.
 
 This combo makes rep+ handy for bug bounty hunters and vulnerability researchers who want Burp-like iteration without the heavyweight UI. Install the extension, open DevTools, head to the rep+ panel, and start hacking. 😎
 
