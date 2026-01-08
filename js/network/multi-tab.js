@@ -157,49 +157,37 @@ export function initMultiTabCapture() {
     }
 
     // Toggle button handler
+    // Note: In Firefox MV3, permissions are declared in manifest.json and cannot be
+    // dynamically requested or removed. This button simply toggles the connection.
     if (multiTabBtn) {
         multiTabBtn.addEventListener('click', () => {
-            if (!browser.permissions) {
-                // Permissions API not available in DevTools panel
-                // Try to connect anyway - user will need to grant permissions manually
-                if (backgroundPort) {
-                    disconnectBackground();
-                    updateMultiTabIcon(false);
+            // Simply toggle connection on/off
+            // Permissions are already granted via manifest.json
+            if (backgroundPort) {
+                disconnectBackground();
+                updateMultiTabIcon(false);
+            } else {
+                // Check if permissions exist (they should, as declared in manifest)
+                if (browser.permissions) {
+                    browser.permissions.contains({
+                        permissions: ['webRequest'],
+                        origins: ['<all_urls>']
+                    }, (result) => {
+                        if (result) {
+                            connectToBackground();
+                            updateMultiTabIcon(true);
+                        } else {
+                            // Permissions not available - show message
+                            updateMultiTabIcon(false);
+                            console.warn('Multi-tab capture requires webRequest permission. Please ensure the extension has the required permissions in manifest.json');
+                        }
+                    });
                 } else {
+                    // Permissions API not available, try to connect anyway
                     connectToBackground();
                     updateMultiTabIcon(true);
                 }
-                return;
             }
-            
-            browser.permissions.contains({
-                permissions: ['webRequest'],
-                origins: ['<all_urls>']
-            }, (result) => {
-                if (result) {
-                    // Disable: Remove permissions
-                    browser.permissions.remove({
-                        permissions: ['webRequest'],
-                        origins: ['<all_urls>']
-                    }, (removed) => {
-                        if (removed) {
-                            updateMultiTabIcon(false);
-                            disconnectBackground();
-                        }
-                    });
-                } else {
-                    // Enable: Request permissions
-                    browser.permissions.request({
-                        permissions: ['webRequest'],
-                        origins: ['<all_urls>']
-                    }, (granted) => {
-                        if (granted) {
-                            updateMultiTabIcon(true);
-                            connectToBackground();
-                        }
-                    });
-                }
-            });
         });
     }
 }

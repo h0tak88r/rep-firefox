@@ -182,14 +182,6 @@ browser.runtime.onConnect.addListener((port) => {
 
 // Handle local model API requests (bypass CORS)
 browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.type === 'permissions-granted') {
-        // Permissions were granted (user enabled them manually), re-setup listeners
-        console.log('Background: Permissions granted, setting up listeners');
-        setupListeners();
-        sendResponse({ success: true });
-        return false;
-    }
-    
     if (request.type === 'local-model-request') {
         const requestId = request.requestId || `local-${Date.now()}-${Math.random()}`;
         
@@ -409,15 +401,6 @@ function setupListeners() {
 
 // Initial setup
 setupListeners();
-
-// Listen for permission changes
-if (browser.permissions) {
-    browser.permissions.onAdded.addListener((permissions) => {
-        if (permissions.permissions && permissions.permissions.includes('webRequest')) {
-            setupListeners();
-        }
-    });
-}
 
 // Periodic cleanup of stale requests (older than 1 minute)
 setInterval(() => {
