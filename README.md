@@ -262,6 +262,30 @@ See [Auth Analyzer Documentation](#auth-analyzer-setup) for detailed setup and u
 
 This combo makes rep+ handy for bug bounty hunters and vulnerability researchers who want Burp-like iteration without the heavyweight UI. Install the extension, open DevTools, head to the rep+ panel, and start hacking. 😎
 
+### Making the Extension Permanent (for Developers)
+
+The "Temporary Add-on" method requires reloading the extension every time you restart Firefox. To make it persistent:
+
+#### Option A: Firefox Developer Edition / Nightly (Recommended)
+1. Use **Firefox Developer Edition** or **Nightly**.
+2. Go to `about:config` in the address bar.
+3. Search for `xpinstall.signatures.required`.
+4. Toggle it to **false**.
+5. Zip the `rep-firefox` folder contents (select all files -> compress).
+6. Rename the `.zip` file to `rep-plus.xpi`.
+7. Go to `about:addons` -> Gear Icon -> **Install Add-on From File...**.
+8. Select your `rep-plus.xpi`.
+
+#### Option B: Standard Firefox (Self-Signing)
+If you use standard Firefox, you must sign the extension:
+1. Zip the extension files.
+2. Go to the [Mozilla Developer Hub](https://addons.mozilla.org/en-US/developers/).
+3. Login and select **"Submit a New Add-on"**.
+4. Choose **"On your own"** (Self-distribution) when asked how you want to distribute.
+5. Upload your zip file.
+6. Once the automated review passes (usually seconds), download the signed `.xpi` file.
+7. Install this signed file in your regular Firefox browser.
+
 ### Local Model (Ollama) Setup
 If you use a local model (e.g., Ollama) you must allow Firefox extensions to call it, otherwise you'll see 403/CORS errors.
 
