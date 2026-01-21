@@ -188,15 +188,49 @@ export class AuthAnalyzer {
         });
 
         try {
+            // Build session based on header type
+            const headerType = this.config.headerType || 'cookie';
+            const headerValue = this.config.swapCookie;
+            const customHeaderName = this.config.customHeaderName || '';
+
+            // Validate header value exists
+            if (!headerValue || !headerValue.trim()) {
+                console.warn('[Auth Analyzer] No swap cookie/header configured, skipping analysis');
+                return;
+            }
+
+            let sessionHeaders = {};
+            let headersToRemove = [];
+
+            switch (headerType) {
+                case 'authorization':
+                    // For Bearer tokens
+                    const bearerValue = headerValue.startsWith('Bearer ') ? headerValue : `Bearer ${headerValue}`;
+                    sessionHeaders['Authorization'] = bearerValue;
+                    headersToRemove = ['Authorization'];
+                    break;
+                case 'custom':
+                    // For custom headers
+                    if (customHeaderName) {
+                        sessionHeaders[customHeaderName] = headerValue;
+                        headersToRemove = [customHeaderName];
+                    }
+                    break;
+                default: // cookie
+                    sessionHeaders['Cookie'] = headerValue;
+                    headersToRemove = ['Cookie'];
+            }
+
             // Replay with swapped cookie
             console.log('[Auth Analyzer] Calling replayer with session:', {
-                cookieValue: this.config.swapCookie?.substring(0, 100),
-                sessionHeaders: { 'Cookie': this.config.swapCookie }
+                headerType,
+                customHeaderName,
+                sessionHeaders
             });
 
             const swappedResponse = await this.replayer.replayWithSession(swappedRequest, {
-                headers: { 'Cookie': this.config.swapCookie },
-                headersToRemove: [],
+                headers: sessionHeaders,
+                headersToRemove: headersToRemove,
                 parameters: [],
                 testCORS: false,
                 dropOriginal: false

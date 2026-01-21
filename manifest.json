@@ -19,20 +19,28 @@
     },
     "devtools_page": "devtools.html",
     "background": {
-        "scripts": ["background.js"]
+        "scripts": [
+            "background.js"
+        ]
     },
     "web_accessible_resources": [
         {
-            "resources": ["rules/*"],
-            "matches": ["<all_urls>"]
+            "resources": [
+                "rules/*"
+            ],
+            "matches": [
+                "<all_urls>"
+            ]
         }
     ],
     "browser_specific_settings": {
         "gecko": {
-            "id": "rep-plus@extension",
+            "id": "rep-plus-h0tak88r@extension",
             "strict_min_version": "109.0",
             "data_collection_permissions": {
-                "required": ["none"],
+                "required": [
+                    "none"
+                ],
                 "optional": []
             }
         }

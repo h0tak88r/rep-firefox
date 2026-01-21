@@ -646,10 +646,26 @@
                         authenticated session</strong> for the <strong>victim/test user</strong>.
                     This value will replace the original header in replayed requests.
                 </div>
-                <label class="auth-config-label">Header Value (e.g. Cookie: session=...)</label>
+
+                <!-- Header Type Selector -->
+                <label class="auth-config-label">Header Type</label>
+                <select id="auth-header-type" class="auth-config-input" style="min-height: 40px; margin-bottom: 12px;">
+                    <option value="cookie">Cookie</option>
+                    <option value="authorization">Authorization (Bearer Token)</option>
+                    <option value="custom">Custom Header</option>
+                </select>
+
+                <!-- Custom Header Name (only shown for custom type) -->
+                <div id="auth-custom-header-name-container" style="display: none; margin-bottom: 12px;">
+                    <label class="auth-config-label">Custom Header Name</label>
+                    <input type="text" id="auth-custom-header-name" class="auth-config-input" style="min-height: 40px;"
+                        placeholder="X-Custom-Auth">
+                </div>
+
+                <label class="auth-config-label" id="auth-header-value-label">Cookie Value (e.g. session=...)</label>
                 <textarea id="auth-config-header-input" class="auth-config-input"
                     placeholder="session=abc12345; user_role=admin"></textarea>
-                <div class="auth-config-hint">
+                <div class="auth-config-hint" id="auth-header-hint">
                     <strong>Tip:</strong> Log in as the test user in another browser/container, copy their Cookie
                     header,
                     and paste it here.

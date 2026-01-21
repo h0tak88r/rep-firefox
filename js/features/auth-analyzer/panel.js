@@ -69,6 +69,11 @@ export class AuthAnalyzerPanel {
             <div class="side-panel-header">
                 <h3>🔒 Auth Analyzer Results</h3>
                 <div style="display: flex; gap: 8px;">
+                    <button id="auth-panel-export-btn" class="icon-btn" title="Export Results" style="color: var(--text-secondary); padding: 4px; position: relative;">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                        </svg>
+                    </button>
                     <button id="auth-panel-config-btn" class="icon-btn" title="Configuration" style="color: var(--text-secondary); padding: 4px;">
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                             <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L4.04 9.43c-.11.2-.06.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.11-.2.06-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
@@ -146,6 +151,15 @@ export class AuthAnalyzerPanel {
             this.panel.style.width = `${savedWidth}px`;
         }
 
+        // Export button handler
+        const exportBtn = this.panel.querySelector('#auth-panel-export-btn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.showExportMenu(exportBtn);
+            });
+        }
+
         // Close button handler
         const closeBtn = this.panel.querySelector('#auth-panel-close-btn');
         if (closeBtn) {
@@ -163,6 +177,145 @@ export class AuthAnalyzerPanel {
                 }
             });
         }
+    }
+
+    /**
+     * Show export menu
+     */
+    showExportMenu(button) {
+        // Remove existing menu
+        const existing = document.querySelector('.auth-export-menu');
+        if (existing) existing.remove();
+
+        const menu = document.createElement('div');
+        menu.className = 'auth-export-menu';
+        menu.style.cssText = `
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 4px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            z-index: 10000;
+            min-width: 120px;
+        `;
+
+        const csvBtn = document.createElement('button');
+        csvBtn.textContent = '📄 Export CSV';
+        csvBtn.style.cssText = `
+            display: block;
+            width: 100%;
+            padding: 8px 12px;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            text-align: left;
+            font-size: 12px;
+        `;
+        csvBtn.addEventListener('mouseenter', () => csvBtn.style.background = 'var(--bg-hover)');
+        csvBtn.addEventListener('mouseleave', () => csvBtn.style.background = 'transparent');
+        csvBtn.addEventListener('click', () => {
+            this.exportToCSV();
+            menu.remove();
+        });
+
+        const jsonBtn = document.createElement('button');
+        jsonBtn.textContent = '📦 Export JSON';
+        jsonBtn.style.cssText = csvBtn.style.cssText;
+        jsonBtn.addEventListener('mouseenter', () => jsonBtn.style.background = 'var(--bg-hover)');
+        jsonBtn.addEventListener('mouseleave', () => jsonBtn.style.background = 'transparent');
+        jsonBtn.addEventListener('click', () => {
+            this.exportToJSON();
+            menu.remove();
+        });
+
+        menu.appendChild(csvBtn);
+        menu.appendChild(jsonBtn);
+        button.style.position = 'relative';
+        button.appendChild(menu);
+
+        // Close on click outside
+        const closeHandler = (e) => {
+            if (!menu.contains(e.target) && e.target !== button) {
+                menu.remove();
+                document.removeEventListener('click', closeHandler);
+            }
+        };
+        setTimeout(() => document.addEventListener('click', closeHandler), 0);
+    }
+
+    /**
+     * Export results to CSV
+     */
+    exportToCSV() {
+        if (this.results.length === 0) {
+            alert('No results to export');
+            return;
+        }
+
+        const headers = ['URL', 'Method', 'Original Status', 'Swapped Status', 'Comparison', 'Timestamp'];
+        const rows = this.results.map(result => {
+            const req = result.originalRequest;
+            const method = req.method || req.request?.method || 'GET';
+            const url = req.url || req.request?.url || '';
+            const origStatus = req.response?.status || req.responseStatus || '';
+            const swapStatus = result.swappedResponse?.status || '';
+            const timestamp = new Date(result.timestamp).toISOString();
+
+            return [url, method, origStatus, swapStatus, result.comparison, timestamp];
+        });
+
+        const csvContent = [
+            headers.join(','),
+            ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        link.href = URL.createObjectURL(blob);
+        link.download = `auth-analyzer-results-${timestamp}.csv`;
+        link.click();
+    }
+
+    /**
+     * Export results to JSON
+     */
+    exportToJSON() {
+        if (this.results.length === 0) {
+            alert('No results to export');
+            return;
+        }
+
+        const exportData = this.results.map(result => {
+            const req = result.originalRequest;
+            const method = req.method || req.request?.method || 'GET';
+            const url = req.url || req.request?.url || '';
+            const origStatus = req.response?.status || req.responseStatus || '';
+            const swapStatus = result.swappedResponse?.status || '';
+
+            return {
+                url,
+                method,
+                originalStatus: origStatus,
+                swappedStatus: swapStatus,
+                comparison: result.comparison,
+                timestamp: new Date(result.timestamp).toISOString(),
+                originalBody: (req.response?.body || '').substring(0, 1000),
+                swappedBody: (result.swappedResponse?.body || '').substring(0, 1000)
+            };
+        });
+
+        const jsonContent = JSON.stringify(exportData, null, 2);
+        const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
+        const link = document.createElement('a');
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        link.href = URL.createObjectURL(blob);
+        link.download = `auth-analyzer-results-${timestamp}.json`;
+        link.click();
     }
 
     /**

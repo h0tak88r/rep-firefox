@@ -9,6 +9,13 @@ export class AuthAnalyzerConfigPanel {
         this.panel = document.getElementById('auth-analyzer-config-panel');
         this.headerInput = document.getElementById('auth-config-header-input');
 
+        // Header type controls
+        this.headerTypeSelect = document.getElementById('auth-header-type');
+        this.customHeaderNameInput = document.getElementById('auth-custom-header-name');
+        this.customHeaderNameContainer = document.getElementById('auth-custom-header-name-container');
+        this.headerValueLabel = document.getElementById('auth-header-value-label');
+        this.headerHint = document.getElementById('auth-header-hint');
+
         // Realtime controls
         this.realtimeToggle = document.getElementById('auth-realtime-toggle');
         this.realtimeScope = document.getElementById('auth-realtime-scope');
@@ -34,6 +41,11 @@ export class AuthAnalyzerConfigPanel {
     }
 
     attachEventListeners() {
+        // Header type change
+        if (this.headerTypeSelect) {
+            this.headerTypeSelect.addEventListener('change', () => this.updateHeaderTypeUI());
+        }
+
         // Close button
         const closeBtn = document.getElementById('auth-config-close-btn');
         if (closeBtn) {
@@ -84,9 +96,20 @@ export class AuthAnalyzerConfigPanel {
             this.filterStaticToggle.checked = this.authAnalyzer.config.filterStatic !== false; // Default true
         }
 
+        // Load header type settings
+        if (this.headerTypeSelect) {
+            this.headerTypeSelect.value = this.authAnalyzer.config.headerType || 'cookie';
+        }
+        if (this.customHeaderNameInput && this.authAnalyzer.config.customHeaderName) {
+            this.customHeaderNameInput.value = this.authAnalyzer.config.customHeaderName;
+        }
+
         this.updateStatus();
         this.panel.classList.add('visible');
         this.isVisible = true;
+
+        // Update header type UI after loading values
+        this.updateHeaderTypeUI();
 
         // Focus input
         setTimeout(() => this.headerInput.focus(), 100);
@@ -96,6 +119,38 @@ export class AuthAnalyzerConfigPanel {
         if (!this.panel) return;
         this.panel.classList.remove('visible');
         this.isVisible = false;
+    }
+
+    /**
+     * Update UI based on selected header type
+     */
+    updateHeaderTypeUI() {
+        const headerType = this.headerTypeSelect?.value || 'cookie';
+
+        // Show/hide custom header name field
+        if (this.customHeaderNameContainer) {
+            this.customHeaderNameContainer.style.display = headerType === 'custom' ? 'block' : 'none';
+        }
+
+        // Update label and placeholder based on type
+        if (this.headerValueLabel && this.headerInput && this.headerHint) {
+            switch (headerType) {
+                case 'authorization':
+                    this.headerValueLabel.textContent = 'Bearer Token';
+                    this.headerInput.placeholder = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
+                    this.headerHint.innerHTML = '<strong>Tip:</strong> Paste just the token value (without "Bearer " prefix).';
+                    break;
+                case 'custom':
+                    this.headerValueLabel.textContent = 'Header Value';
+                    this.headerInput.placeholder = 'custom-value-here';
+                    this.headerHint.innerHTML = '<strong>Tip:</strong> Enter the full header value to swap.';
+                    break;
+                default: // cookie
+                    this.headerValueLabel.textContent = 'Cookie Value (e.g. session=...)';
+                    this.headerInput.placeholder = 'session=abc12345; user_role=admin';
+                    this.headerHint.innerHTML = '<strong>Tip:</strong> Log in as the test user in another browser/container, copy their Cookie header, and paste it here.';
+            }
+        }
     }
 
     toggle() {
@@ -143,8 +198,14 @@ export class AuthAnalyzerConfigPanel {
         const realtimeScope = this.realtimeScope ? this.realtimeScope.value.trim() : '';
         const filterStatic = this.filterStaticToggle ? this.filterStaticToggle.checked : true;
 
+        // Get header type settings
+        const headerType = this.headerTypeSelect ? this.headerTypeSelect.value : 'cookie';
+        const customHeaderName = this.customHeaderNameInput ? this.customHeaderNameInput.value.trim() : '';
+
         // Save config
         this.authAnalyzer.config.swapCookie = headerValue;
+        this.authAnalyzer.config.headerType = headerType;
+        this.authAnalyzer.config.customHeaderName = customHeaderName;
         this.authAnalyzer.config.enabledRealtime = enabledRealtime;
         this.authAnalyzer.config.realtimeScope = realtimeScope;
         this.authAnalyzer.config.filterStatic = filterStatic;
