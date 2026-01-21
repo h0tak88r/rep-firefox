@@ -327,36 +327,49 @@ function handleBeforeRequest(details) {
 }
 
 function handleBeforeSendHeaders(details) {
-    const headers = details.requestHeaders;
-
-    // Store for captured requests
-    if (ports.size > 0) {
-        const req = requestMap.get(details.requestId);
-        if (req) {
-            req.requestHeaders = headers;
-        }
+    if (ports.size === 0) return;
+    const req = requestMap.get(details.requestId);
+    if (req) {
+        req.requestHeaders = details.requestHeaders;
     }
 
-    // COOKIE INJECTION: Check if this is a replayed request
-    const isReplay = headers.some(h => h.name === 'X-Rep-Plus-Replay' && h.value === 'true');
-    if (!isReplay) return;
+    // COOKIE INJECTION: Check if this is a replayed request with custom cookie
+    const headers = details.requestHeaders;
+    const isReplay = headers.some(h =>
+        h.name === 'X-Rep-Plus-Replay' && h.value === 'true'
+    );
 
-    // Find custom cookie header
-    const cookieIdx = headers.findIndex(h => h.name === 'X-Rep-Plus-Cookie');
-    if (cookieIdx === -1) return;
+    if (isReplay) {
+        // Find our custom cookie header
+        const cookieHeaderIndex = headers.findIndex(h =>
+            h.name === 'X-Rep-Plus-Cookie'
+        );
 
-    const cookieValue = headers[cookieIdx].value;
-    headers.splice(cookieIdx, 1); // Remove custom header
+        if (cookieHeaderIndex !== -1) {
+            const cookieValue = headers[cookieHeaderIndex].value;
 
-    // Remove browser cookies
-    const existingIdx = headers.findIndex(h => h.name.toLowerCase() === 'cookie');
-    if (existingIdx !== -1) headers.splice(existingIdx, 1);
+            // Remove the custom header (don't send it to server)
+            headers.splice(cookieHeaderIndex, 1);
 
-    // Inject our cookie
-    headers.push({ name: 'Cookie', value: cookieValue });
-    console.log('[Cookie Injection] ✅ Injected for:', details.url.substring(0, 60));
+            // Remove existing Cookie header from browser jar (if any)
+            const existingCookieIndex = headers.findIndex(h =>
+                h.name.toLowerCase() === 'cookie'
+            );
+            if (existingCookieIndex !== -1) {
+                headers.splice(existingCookieIndex, 1);
+            }
 
-    return { requestHeaders: headers };
+            // Inject our Cookie header from request text
+            headers.push({
+                name: 'Cookie',
+                value: cookieValue
+            });
+
+            console.log('[Cookie Injection] Injected cookie for:', details.url.substring(0, 80));
+
+            return { requestHeaders: headers };
+        }
+    }
 }
 
 function handleCompleted(details) {
@@ -399,21 +412,11 @@ function setupListeners() {
             );
         }
         if (!browser.webRequest.onBeforeSendHeaders.hasListener(handleBeforeSendHeaders)) {
-            try {
-                browser.webRequest.onBeforeSendHeaders.addListener(
-                    handleBeforeSendHeaders,
-                    { urls: ["<all_urls>"] },
-                    ["blocking", "requestHeaders", "extraHeaders"]
-                );
-                console.log("✅ Cookie injection enabled (blocking + extraHeaders)");
-            } catch (e) {
-                browser.webRequest.onBeforeSendHeaders.addListener(
-                    handleBeforeSendHeaders,
-                    { urls: ["<all_urls>"] },
-                    ["blocking", "requestHeaders"]
-                );
-                console.log("✅ Cookie injection enabled (blocking mode)");
-            }
+            browser.webRequest.onBeforeSendHeaders.addListener(
+                handleBeforeSendHeaders,
+                { urls: ["<all_urls>"] },
+                ["requestHeaders"]
+            );
         }
         if (!browser.webRequest.onCompleted.hasListener(handleCompleted)) {
             browser.webRequest.onCompleted.addListener(
