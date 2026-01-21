@@ -197,10 +197,20 @@ export function parseRequest(rawContent, useHttps) {
     const scheme = useHttps ? 'https' : 'http';
     const url = `${scheme}://${host}${path}`;
 
+    // Extract Cookie header BEFORE filtering (Firefox forbids setting it via fetch)
+    let cookieHeader = null;
+    for (const [key, value] of Object.entries(headers)) {
+        if (key.toLowerCase() === 'cookie') {
+            cookieHeader = value;
+            break;
+        }
+    }
+
     // Filter out forbidden headers
     const forbiddenHeaders = [
         'accept-charset', 'accept-encoding', 'access-control-request-headers',
         'access-control-request-method', 'connection', 'content-length',
+        'cookie', // CRITICAL: Firefox forbids this via fetch(), we'll inject it via webRequest
         'date', 'dnt', 'expect', 'host', 'keep-alive',
         'origin', 'referer', 'te', 'trailer', 'transfer-encoding', 'upgrade', 'via'
     ];
@@ -217,6 +227,11 @@ export function parseRequest(rawContent, useHttps) {
                 filteredHeaders[key] = value;
             }
         }
+    }
+
+    // If Cookie was in the request, pass it via custom header for webRequest interception
+    if (cookieHeader) {
+        filteredHeaders['X-Rep-Plus-Cookie'] = cookieHeader;
     }
 
     // Add cache-busting headers to prevent 304 Not Modified responses
