@@ -101,6 +101,51 @@ export class AuthAnalyzerPanel {
         // Append to body
         document.body.appendChild(this.panel);
 
+        // Add resize handle
+        const resizeHandle = document.createElement('div');
+        resizeHandle.className = 'auth-panel-resize-handle';
+        this.panel.appendChild(resizeHandle); // Append to panel so it moves with it
+
+        // Resize Logic
+        let isResizing = false;
+
+        resizeHandle.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            document.body.style.cursor = 'ew-resize';
+            resizeHandle.classList.add('active');
+            e.preventDefault(); // Prevent text selection
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+
+            // Calculate new width: Window Width - Mouse X
+            // (Since panel is anchored to the right)
+            const newWidth = window.innerWidth - e.clientX;
+
+            // Constraints
+            if (newWidth > 300 && newWidth < window.innerWidth - 50) {
+                this.panel.style.width = `${newWidth}px`;
+                // Update main content margin if necessary (optional, depending on overlap preference)
+                // document.body.style.setProperty('--auth-panel-width', `${newWidth}px`);
+                localStorage.setItem('rep_auth_panel_width', newWidth);
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isResizing) {
+                isResizing = false;
+                document.body.style.cursor = '';
+                resizeHandle.classList.remove('active');
+            }
+        });
+
+        // Restore saved width
+        const savedWidth = localStorage.getItem('rep_auth_panel_width');
+        if (savedWidth) {
+            this.panel.style.width = `${savedWidth}px`;
+        }
+
         // Close button handler
         const closeBtn = this.panel.querySelector('#auth-panel-close-btn');
         if (closeBtn) {
@@ -301,7 +346,7 @@ export class AuthAnalyzerPanel {
                             <div style="font-family: monospace; word-break: break-all; background: var(--bg-primary); padding: 8px; border-radius: 4px; font-size: 11px; user-select: text; border: 1px solid var(--border-color);">${escapeHtml(url)}</div>
                         </div>
 
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div style="display: flex; flex-direction: column; gap: 16px;">
                             <div>
                                 <div style="font-weight: 600; margin-bottom: 8px;">Original (Your Session)</div>
                                 <div style="background: var(--bg-primary); padding: 8px; border-radius: 4px; border-left: 3px solid ${color};">

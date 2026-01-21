@@ -68,6 +68,8 @@ rep+ is a lightweight Firefox DevTools extension inspired by Burp Suite's Repeat
 - Timeline view (flat, chronological) to see what loaded before a request.
 - Filters: method, domain, color tags, text search, regex mode.
 - **Global Static Filter**: Toggle in "More Menu" to hide static files (images, JS, CSS) from the main list.
+- **Resizable Panels**: Main sidebar and Auth Analyzer panel can be resized by dragging the edge.
+- **Vertical Comparison**: Auth Analyzer results show Original vs Swapped responses stacked vertically for better readability.
 
 ### Views & Editing
 - Pretty / Raw / Hex views; layout toggle (horizontal/vertical).
