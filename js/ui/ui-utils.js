@@ -55,7 +55,7 @@ export function toggleAllObjects() {
 
 export function clearAllRequestsUI() {
     const requestList = document.getElementById('request-list');
-    
+
     // First, manually remove all groups and items from DOM
     if (requestList) {
         // Remove all page groups, domain groups, path groups, and request items
@@ -70,7 +70,7 @@ export function clearAllRequestsUI() {
                 }
             }
         });
-        
+
         // Forcefully remove all remaining child nodes
         while (requestList.firstChild) {
             requestList.removeChild(requestList.firstChild);
@@ -82,7 +82,7 @@ export function clearAllRequestsUI() {
         emptyState.textContent = 'Listening for requests...';
         requestList.appendChild(emptyState);
     }
-    
+
     // Then clear state (this will emit events)
     actions.request.clearAll();
     actions.blocking.clearBlockedQueue();
@@ -141,21 +141,21 @@ export function setupResizeHandle() {
         } else {
             const offsetX = e.clientX - containerRect.left;
             const containerWidth = containerRect.width;
-            
+
             // Check if chat pane is open
             const chatPane = document.getElementById('llm-chat-pane');
             const isChatOpen = chatPane && chatPane.style.display !== 'none' && window.getComputedStyle(chatPane).display !== 'none';
-            
+
             if (isChatOpen) {
                 // When chat is open, only resize request and response, keep chat fixed
                 const chatRect = chatPane.getBoundingClientRect();
                 const chatWidth = chatRect.width;
                 const chatResizeHandle = document.querySelector('.chat-resize-handle');
                 const chatResizeHandleWidth = chatResizeHandle ? (chatResizeHandle.offsetWidth || 5) : 5;
-                
+
                 // Available width is container minus chat pane and its resize handle
                 const availableWidth = containerWidth - chatWidth - chatResizeHandleWidth;
-                
+
                 // Enforce minimum pixel widths
                 const minLeftPx = 200;
                 const minRightPx = 200;
@@ -163,16 +163,16 @@ export function setupResizeHandle() {
                     Math.max(offsetX, minLeftPx),
                     Math.max(availableWidth - minRightPx, minLeftPx)
                 );
-                
+
                 // Calculate percentages of available width (not full container)
                 let requestPercentage = (clampedOffsetX / availableWidth) * 100;
                 let responsePercentage = 100 - requestPercentage;
-                
+
                 // Convert to container percentages
                 const availablePercentage = (availableWidth / containerWidth) * 100;
                 requestPercentage = (requestPercentage / 100) * availablePercentage;
                 responsePercentage = (responsePercentage / 100) * availablePercentage;
-                
+
                 // Keep chat pane fixed, only adjust request and response
                 requestPane.style.flex = `0 0 ${requestPercentage}%`;
                 responsePane.style.flex = `0 0 ${responsePercentage}%`;
@@ -259,7 +259,7 @@ export function setupUndoRedo() {
     elements.rawRequestInput.addEventListener('blur', () => {
         const content = elements.rawRequestInput.innerText;
         elements.rawRequestInput.innerHTML = highlightHTTP(content);
-        
+
         // Auto-save editor state when user leaves the editor (switching requests, etc.)
         if (state.selectedRequest) {
             const requestIndex = state.requests.indexOf(state.selectedRequest);
@@ -371,15 +371,15 @@ export function setupContextMenu() {
             // Store selected text and range in context menu dataset for later use
             elements.contextMenu.dataset.selectedText = selectedText;
             currentSelection = selection; // Store the selection object
-            
+
             if (selection.rangeCount > 0) {
                 const range = selection.getRangeAt(0);
                 currentRange = range.cloneRange(); // Clone the range to preserve it
-                
+
                 // Calculate character offset from start of editor for reliable positioning
                 // Get plain text first (this strips HTML)
                 const editorText = editor.textContent || editor.innerText || '';
-                
+
                 // Create a range from start of editor to selection start to count characters
                 // This method works even when editor has HTML content
                 try {
@@ -393,7 +393,7 @@ export function setupContextMenu() {
                             null
                         );
                         const firstTextNode = walker.nextNode();
-                        
+
                         if (firstTextNode) {
                             range.setStart(firstTextNode, 0);
                         } else {
@@ -403,10 +403,10 @@ export function setupContextMenu() {
                         range.setEnd(container, offset);
                         return range.toString().length;
                     }
-                    
+
                     const startOffset = getCharacterOffset(range.startContainer, range.startOffset);
                     const endOffset = getCharacterOffset(range.endContainer, range.endOffset);
-                    
+
                     // Verify the offsets make sense and match the selected text
                     if (startOffset >= 0 && endOffset >= startOffset && endOffset <= editorText.length) {
                         const selectedTextFromRange = editorText.substring(startOffset, endOffset);
@@ -423,7 +423,7 @@ export function setupContextMenu() {
                                 contextBefore: editorText.substring(Math.max(0, startOffset - 20), startOffset), // Context for verification
                                 contextAfter: editorText.substring(endOffset, Math.min(editorText.length, endOffset + 20))
                             };
-                            
+
                             // Store character offsets in context menu dataset for bulk replay
                             // This allows marking the exact selected text even if it appears multiple times
                             elements.contextMenu.dataset.charStart = startOffset.toString();
@@ -467,7 +467,7 @@ export function setupContextMenu() {
             }
 
             elements.contextMenu.dataset.fullSelection = isFullSelection ? 'true' : 'false';
-            
+
             showContextMenu(e.clientX, e.clientY, editor);
         });
     });
@@ -493,13 +493,13 @@ export function setupContextMenu() {
             return;
         }
 
-            e.stopPropagation();
-            const action = item.dataset.action;
+        e.stopPropagation();
+        const action = item.dataset.action;
         if (!action) return;
 
         // "Mark Payload (§)" is handled elsewhere
         if (action === 'mark-payload') {
-                hideContextMenu();
+            hideContextMenu();
             return;
         }
 
@@ -694,11 +694,11 @@ function handleEncodeDecode(action) {
         // Strategy: Try to use the range directly first (fastest and most accurate)
         // If that fails, use stored character offsets
         // Last resort: text search
-        
+
         const editorText = editor.textContent || editor.innerText || '';
         let replacementDone = false;
         let startIndex = -1;
-        
+
         // First, try to use the stored range directly (most reliable if still valid)
         if (editor.contentEditable === 'true' && rangeToUse) {
             try {
@@ -726,11 +726,11 @@ function handleEncodeDecode(action) {
                 console.warn('Range invalid, using fallback:', e);
             }
         }
-        
+
         // If range didn't work, use stored character offset
         if (!replacementDone && storedRangeInfo && storedRangeInfo.editor === editor && storedRangeInfo.charStart !== undefined) {
             startIndex = storedRangeInfo.charStart;
-            
+
             // Verify the text at this position matches
             if (startIndex >= 0 && startIndex < editorText.length) {
                 const textAtPosition = editorText.substring(startIndex, startIndex + selectedText.length);
@@ -770,7 +770,7 @@ function handleEncodeDecode(action) {
                 startIndex = -1; // Invalid offset
             }
         }
-        
+
         // Last resort: try to recreate range from stored info, or use indexOf
         if (!replacementDone && startIndex === -1) {
             if (storedRangeInfo && storedRangeInfo.editor === editor) {
@@ -779,7 +779,7 @@ function handleEncodeDecode(action) {
                     const range = document.createRange();
                     range.setStart(storedRangeInfo.startContainer, storedRangeInfo.startOffset);
                     range.setEnd(storedRangeInfo.endContainer, storedRangeInfo.endOffset);
-                    
+
                     if (editor.contains(range.commonAncestorContainer) || range.commonAncestorContainer === editor) {
                         const rangeText = range.toString().trim();
                         if (rangeText === selectedText.trim()) {
@@ -800,7 +800,7 @@ function handleEncodeDecode(action) {
                     // Failed to recreate range
                 }
             }
-            
+
             // Final fallback: use indexOf (but warn if text appears multiple times)
             if (!replacementDone) {
                 startIndex = editorText.indexOf(selectedText);
@@ -810,7 +810,7 @@ function handleEncodeDecode(action) {
                 }
             }
         }
-        
+
         // Perform the replacement using text-based method if range didn't work
         if (!replacementDone && startIndex !== -1 && startIndex >= 0 && startIndex < editorText.length) {
             // Verify the text at this position matches what we expect
@@ -837,7 +837,7 @@ function handleEncodeDecode(action) {
                     return;
                 }
             }
-            
+
             // Extra validation: if startIndex is 0, make sure we have context or stored info
             if (startIndex === 0 && (!storedRangeInfo || storedRangeInfo.charStart !== 0)) {
                 // Position 0 without stored confirmation - this might be wrong
@@ -866,11 +866,11 @@ function handleEncodeDecode(action) {
                     }
                 }
             }
-            
+
             const before = editorText.substring(0, startIndex);
             const after = editorText.substring(startIndex + selectedText.length);
             const newText = before + transformedText + after;
-            
+
             // Replace the text content (this removes HTML, which is fine - we'll re-apply highlighting)
             editor.textContent = newText;
         } else if (!replacementDone) {
@@ -1057,6 +1057,55 @@ function handleCopyAs(action) {
         jsLines.push('  .then(console.log)');
         jsLines.push('  .catch(console.error);');
         textToCopy = jsLines.join('\n');
+    } else if (action === 'copy-as-fetch-poc') {
+        // POC-ready JavaScript fetch (clean, no cookies in headers, relative URL)
+        const urlObj = new URL(req.url);
+        const relativeUrl = urlObj.pathname + urlObj.search;
+
+        // Filter out sensitive/browser-managed headers
+        const ignoreHeaders = ['host', 'connection', 'content-length', 'cookie', 'referer',
+            'sec-fetch-dest', 'sec-fetch-mode', 'sec-fetch-site', 'te'];
+        const filteredHeaders = headers.filter(h => !ignoreHeaders.includes(h.name.toLowerCase()));
+        const hasBody = body && (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE');
+
+        const pocLines = [];
+        pocLines.push(`fetch("${relativeUrl}", {`);
+        pocLines.push(`  method: "${method}",`);
+
+        // Only include important headers (exclude cookie and browser stuff)
+        if (filteredHeaders.length > 0) {
+            pocLines.push('  headers: {');
+            filteredHeaders.forEach((h, idx) => {
+                const key = h.name.toLowerCase();
+                const val = String(h.value).replace(/"/g, '\\"');
+                const comma = idx < filteredHeaders.length - 1 ? ',' : '';
+                pocLines.push(`    "${key}": "${val}"${comma}`);
+            });
+            pocLines.push('  },');
+        }
+
+        // Body
+        if (hasBody) {
+            const ct = headers.find(h => h.name.toLowerCase() === 'content-type')?.value || '';
+            if (ct.toLowerCase().includes('application/json')) {
+                try {
+                    const parsed = JSON.parse(body);
+                    pocLines.push(`  body: JSON.stringify(${JSON.stringify(parsed)}),`);
+                } catch {
+                    pocLines.push(`  body: ${JSON.stringify(body)},`);
+                }
+            } else {
+                pocLines.push(`  body: ${JSON.stringify(body)},`);
+            }
+        }
+
+        // credentials: "include" to let browser handle cookies
+        pocLines.push('  credentials: "include"');
+        pocLines.push('})');
+        pocLines.push('.then(r => r.json())');
+        pocLines.push('.then(data => console.log(data))');
+        pocLines.push('.catch(err => console.error(err));');
+        textToCopy = pocLines.join('\n');
     } else {
         return;
     }
@@ -1093,10 +1142,10 @@ export async function captureScreenshot() {
     // Capture only the full request and response content (no headers/search bars),
     // and make sure the entire text is visible in the image.
     try {
-    if (typeof html2canvas === 'undefined') {
-        alert('html2canvas library not loaded');
-        return;
-    }
+        if (typeof html2canvas === 'undefined') {
+            alert('html2canvas library not loaded');
+            return;
+        }
 
         const requestEditor = document.querySelector('#raw-request-input');
         const responseActiveView = document.querySelector('.response-pane .view-content.active');
