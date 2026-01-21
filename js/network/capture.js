@@ -23,8 +23,8 @@ export function setupNetworkListener(onRequestCaptured) {
         // Filter out requests sent by rep+ extension (replayed requests)
         // Check if request has our custom header
         if (request.request.headers) {
-            const hasRepPlusHeader = request.request.headers.some(h => 
-                (h.name === 'X-Rep-Plus-Replay' || h.name.toLowerCase() === 'x-rep-plus-replay') && 
+            const hasRepPlusHeader = request.request.headers.some(h =>
+                (h.name === 'X-Rep-Plus-Replay' || h.name.toLowerCase() === 'x-rep-plus-replay') &&
                 h.value === 'true'
             );
             if (hasRepPlusHeader) {
@@ -38,10 +38,10 @@ export function setupNetworkListener(onRequestCaptured) {
         try {
             const urlObj = new URL(request.request.url);
             const hostname = urlObj.hostname.toLowerCase();
-            
+
             // Check if hostname is an extension ID (32 alphanumeric chars)
             // or contains moz-extension:// scheme
-            if (extensionIdPattern.test(hostname) || 
+            if (extensionIdPattern.test(hostname) ||
                 request.request.url.startsWith('moz-extension://') ||
                 request.request.url.startsWith('about:')) {
                 return;
@@ -51,23 +51,46 @@ export function setupNetworkListener(onRequestCaptured) {
         }
 
         // Filter out static resources (JS, CSS, images, fonts, etc.)
+        // EXTENDED list to match Auth Analyzer
         const url = request.request.url.toLowerCase();
         const staticExtensions = [
-            '.css', '.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp', '.ico',
+            // Scripts
+            '.js', '.mjs', '.jsx',
+            // Stylesheets
+            '.css', '.scss', '.sass', '.less',
+            // Images
+            '.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp', '.ico', '.bmp', '.tiff',
+            // Fonts
             '.woff', '.woff2', '.ttf', '.eot', '.otf',
-            '.mp4', '.webm', '.mp3', '.wav',
-            '.pdf'
+            // Media
+            '.mp4', '.webm', '.ogg', '.mp3', '.wav', '.flac', '.aac',
+            // Documents
+            '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
+            // Archives
+            '.zip', '.rar', '.tar', '.gz', '.7z',
+            // Source maps
+            '.map'
         ];
 
-        // Check if URL ends with any static extension
-        const isStatic = staticExtensions.some(ext => {
-            return url.endsWith(ext) || url.includes(ext + '?');
-        });
+        // START: Configurable Static File Filter
+        // Read directly from localStorage (synchronous in this context) to ensure latest setting
+        // Default to TRUE (filtering enabled) if not set, or check user pref
+        const filterStaticEnabled = localStorage.getItem('rep_filter_static_main') !== 'false';
 
-        if (isStatic) {
-            // console.log('Skipping static resource:', request.request.url);
-            return;
+        if (filterStaticEnabled) {
+            // Check if URL ends with any static extension
+            const isStatic = staticExtensions.some(ext => {
+                return url.endsWith(ext) || url.includes(ext + '?');
+            });
+
+            if (isStatic) {
+                // console.log('Skipping static resource:', request.request.url);
+                return;
+            }
         }
+        // END: Configurable Static File Filter
+
+
 
         // Store the capture time for relative time display
         request.capturedAt = Date.now();
@@ -75,12 +98,12 @@ export function setupNetworkListener(onRequestCaptured) {
         // Store the page URL that this request belongs to
         // Filter out requests from extension contexts
         const pageUrl = currentPageUrl || request.request.url;
-        
+
         // Skip if pageUrl is from an extension (moz-extension:// or extension ID hostname)
         try {
             const pageUrlObj = new URL(pageUrl);
             const pageHostname = pageUrlObj.hostname.toLowerCase();
-            if (extensionIdPattern.test(pageHostname) || 
+            if (extensionIdPattern.test(pageHostname) ||
                 pageUrl.startsWith('moz-extension://') ||
                 pageUrl.startsWith('about:')) {
                 return;
@@ -88,7 +111,7 @@ export function setupNetworkListener(onRequestCaptured) {
         } catch (e) {
             // If URL parsing fails, continue
         }
-        
+
         request.pageUrl = pageUrl;
 
         // Fetch response content so we can show it without switching tabs
@@ -201,11 +224,11 @@ export function parseRequest(rawContent, useHttps) {
     filteredHeaders['Cache-Control'] = 'no-cache, no-store, must-revalidate';
     filteredHeaders['Pragma'] = 'no-cache';
     filteredHeaders['Expires'] = '0';
-    
+
     // Remove conditional headers that might cause 304 responses
     delete filteredHeaders['If-None-Match'];
     delete filteredHeaders['If-Modified-Since'];
-    
+
     const options = {
         method: method,
         headers: filteredHeaders,
@@ -228,7 +251,7 @@ export async function executeRequest(url, options) {
         options.headers = {};
     }
     options.headers['X-Rep-Plus-Replay'] = 'true';
-    
+
     const startTime = performance.now();
     const response = await fetch(url, options);
     const endTime = performance.now();

@@ -49,7 +49,7 @@ export async function handleSendRequest() {
 
         // Store current response
         state.currentResponse = rawResponse;
-        
+
         // Save editor state (including response) after receiving response
         if (state.selectedRequest) {
             const requestIndex = state.requests.indexOf(state.selectedRequest);
@@ -85,6 +85,24 @@ export async function handleSendRequest() {
         elements.jsonResponseDisplay.innerHTML = '';
         elements.jsonResponseDisplay.appendChild(generateJsonView(rawResponse));
 
+        // Return data for other consumers (like Auth Analyzer)
+        return {
+            url,
+            method,
+            headers: options.headers,
+            body: bodyText,
+            responseStatus: result.status,
+            responseStatusText: result.statusText,
+            responseHeaders: result.headers, // Headers object or array?
+            responseBody: result.body,
+            response: {
+                status: result.status,
+                statusText: result.statusText,
+                body: result.body,
+                headers: result.headers
+            }
+        };
+
     } catch (err) {
         console.error('Request Failed:', err);
 
@@ -97,6 +115,7 @@ export async function handleSendRequest() {
         } else {
             showError(err);
         }
+        return null;
     }
 }
 

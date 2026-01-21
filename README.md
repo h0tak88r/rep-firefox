@@ -67,6 +67,7 @@ rep+ is a lightweight Firefox DevTools extension inspired by Burp Suite's Repeat
 - Starring for requests, pages, and domains (auto-star for new matches).
 - Timeline view (flat, chronological) to see what loaded before a request.
 - Filters: method, domain, color tags, text search, regex mode.
+- **Global Static Filter**: Toggle in "More Menu" to hide static files (images, JS, CSS) from the main list.
 
 ### Views & Editing
 - Pretty / Raw / Hex views; layout toggle (horizontal/vertical).
@@ -327,7 +328,7 @@ If you use a local model (e.g., Ollama) you must allow Firefox extensions to cal
 
 ### Tips
 - **Clear Cookie Headers**: The tool automatically removes existing cookie headers before swapping to avoid conflicts
-- **Static Files**: Consider filtering out static resources (CSS/JS/images) to reduce noise
+- **Static Files**: Use the "Filter Static Files" checkbox in Auth Analyzer Config OR the global toggle in the "More Menu" to ignore static resources
 - **Scope**: Use realtime scope filtering to focus on specific API endpoints or subdomains
 - **Export Results**: Results are stored per session - you can export via Storage API
 

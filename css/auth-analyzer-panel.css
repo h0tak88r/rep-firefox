@@ -1,0 +1,255 @@
+/* Auth Analyzer Results Panel */
+#auth-analyzer-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 400px;
+    height: 100vh;
+    /* Use main application background color for solid appearance */
+    background: var(--bg-color, #202124);
+    /* Add solid fallback just in case variable is missing or transparent */
+    background-color: #202124;
+    border-left: 1px solid var(--border-color);
+    display: none;
+    flex-direction: column;
+    z-index: 1000;
+    overflow: hidden;
+    /* Box shadow for depth */
+    box-shadow: -4px 0 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Ensure no transparency on visible state */
+#auth-analyzer-panel.visible {
+    display: flex;
+    opacity: 1;
+}
+
+.auth-analyzer-header {
+    padding: 12px 16px;
+    background: var(--sidebar-bg, #292a2d);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.auth-analyzer-header h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.auth-analyzer-close {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.auth-analyzer-close:hover {
+    color: var(--text-primary);
+}
+
+.auth-analyzer-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+    /* Ensure content background is distinct if needed, but solid */
+    background: var(--bg-color, #202124);
+}
+
+.auth-analyzer-stats {
+    display: flex;
+    gap: 8px;
+    padding: 8px;
+    background: var(--sidebar-bg, #292a2d);
+    border-radius: 4px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.auth-stat {
+    flex: 1;
+    text-align: center;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+/* Updated Stat Colors to be solid/opaque but tinted */
+.auth-stat.critical {
+    background: #3c1f1f;
+    /* Dark red background for contrast */
+    border: 1px solid #f44336;
+}
+
+.auth-stat.warning {
+    background: #3e2723;
+    /* Dark orange background */
+    border: 1px solid #ff9800;
+}
+
+.auth-stat.success {
+    background: #1b3320;
+    /* Dark green background */
+    border: 1px solid #4caf50;
+}
+
+.auth-stat-count {
+    display: block;
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.auth-stat.critical .auth-stat-count {
+    color: #f44336;
+}
+
+.auth-stat.warning .auth-stat-count {
+    color: #ff9800;
+}
+
+.auth-stat.success .auth-stat-count {
+    color: #4caf50;
+}
+
+.auth-stat-label {
+    display: block;
+    opacity: 0.8;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+/* Result Items */
+.auth-result-item {
+    background: var(--sidebar-bg, #292a2d);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    margin-bottom: 8px;
+    overflow: hidden;
+}
+
+.auth-result-summary {
+    padding: 10px 12px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.auth-result-summary:hover {
+    background: var(--bg-hover);
+}
+
+.auth-result-info {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Method Badges */
+.auth-result-method {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: bold;
+    margin-right: 6px;
+}
+
+.auth-result-method.POST {
+    background: #ff9800;
+    color: white;
+}
+
+.auth-result-method.GET {
+    background: #4caf50;
+    color: white;
+}
+
+.auth-result-method.PUT {
+    background: #2196f3;
+    color: white;
+}
+
+.auth-result-method.DELETE {
+    background: #f44336;
+    color: white;
+}
+
+.auth-result-url {
+    font-size: 12px;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.auth-result-status {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+.auth-result-toggle {
+    color: var(--text-secondary);
+    font-size: 12px;
+    transition: transform 0.2s;
+}
+
+.auth-result-item.expanded .auth-result-toggle {
+    transform: rotate(90deg);
+}
+
+.auth-result-details {
+    display: none;
+    border-top: 1px solid var(--border-color);
+    padding: 12px;
+    background: var(--bg-color, #202124);
+}
+
+.auth-result-item.expanded .auth-result-details {
+    display: block;
+}
+
+.auth-response-section {
+    margin-bottom: 12px;
+}
+
+.auth-response-body {
+    background: var(--code-bg, #000000);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    max-height: 200px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    color: var(--text-primary);
+}
+
+/* Helper Text */
+.auth-no-results {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.auth-no-results-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.3;
+}
+
+/* Adjust main content when panel is visible */
+body.auth-analyzer-panel-open .main-content {
+    margin-right: 400px;
+}

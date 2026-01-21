@@ -21,6 +21,9 @@ import { setupAIFeatures } from './features/ai/index.js';
 import { setupLLMChat } from './features/llm-chat/index.js';
 import { handleSendRequest } from './network/handler.js';
 import { initSearch } from './search/index.js';
+import { initAuthAnalyzer } from './features/auth-analyzer/index.js';
+import { initAuthAnalyzerConfigPanel } from './features/auth-analyzer/config-panel.js';
+import { initAuthAnalyzerPanel } from './features/auth-analyzer/panel.js';
 
 // UI Modules
 import { setupBlockControls } from './ui/block-controls.js';
@@ -46,6 +49,90 @@ document.addEventListener('DOMContentLoaded', () => {
     setupAIFeatures(elements);
     setupLLMChat(elements);
     initSearch();
+
+    // Auth Analyzer Initialization
+    const authAnalyzer = initAuthAnalyzer();
+    const authConfigPanel = initAuthAnalyzerConfigPanel(authAnalyzer);
+    window.authAnalyzerPanel = initAuthAnalyzerPanel(); // Make globally available for bulk replay
+
+    // Link config panel to results panel
+    if (window.authAnalyzerPanel) {
+        window.authAnalyzerPanel.setConfigPanel(authConfigPanel);
+    }
+
+    // Auth Analyzer Toggle (in More Menu)
+    const authToggleBtn = document.getElementById('auth-analyzer-toggle');
+    if (authToggleBtn) {
+        authToggleBtn.addEventListener('click', () => {
+            // If disabled (default), show config panel to enable
+            if (!authAnalyzer.enabled) {
+                authConfigPanel.show();
+            } else {
+                // If enabled, toggle the results panel
+                window.authAnalyzerPanel.toggle();
+            }
+        });
+    }
+
+    // Config Panel Close Event - check if enabled
+    const authConfigCloseBtn = document.getElementById('auth-config-close-btn');
+    if (authConfigCloseBtn) {
+        authConfigCloseBtn.addEventListener('click', () => {
+            if (authAnalyzer.enabled) {
+                // If enabled, show result panel
+                window.authAnalyzerPanel.show();
+            }
+        });
+    }
+
+    // Auth Analyzer Results Button (Top Bar)
+    const authResultsBtn = document.getElementById('auth-results-btn');
+    if (authResultsBtn) {
+        authResultsBtn.addEventListener('click', () => {
+            if (window.authAnalyzerPanel) {
+                window.authAnalyzerPanel.toggle();
+            }
+        });
+    }
+
+    // Test Auth Button (Request Editor)
+    const testAuthBtn = document.getElementById('test-auth-btn');
+    if (testAuthBtn) {
+        testAuthBtn.addEventListener('click', async () => {
+            // Check if enabled first
+            if (!authAnalyzer.enabled) {
+                authConfigPanel.show();
+                return;
+            }
+
+            console.log("Test Auth clicked - triggering send");
+
+            // Trigger send and wait for result
+            const requestData = await handleSendRequest();
+
+            if (requestData) {
+                // Construct Auth Analyzer request object
+                // We map the data returned by handleSendRequest to what AuthAnalyzer expects
+                const authReq = {
+                    url: requestData.url,
+                    method: requestData.method,
+                    headers: requestData.headers,
+                    body: requestData.body,
+                    response: requestData.response
+                };
+
+                console.log("[Auth Analyzer] Manually triggering analysis for:", authReq.url);
+
+                // Pass false for isAutomatic to skip realtime/scope checks (Manual Trigger)
+                authAnalyzer.processRequest(authReq, false);
+
+                // Show results panel
+                if (window.authAnalyzerPanel) {
+                    window.authAnalyzerPanel.show();
+                }
+            }
+        });
+    }
 
     // Promotional Banner
     if (elements.promoBanner && elements.closeBannerBtn) {
@@ -124,14 +211,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // Load saved preference (default: true/enabled)
         const removeDuplicatesEnabled = localStorage.getItem('rep_remove_duplicates') !== 'false';
         updateRemoveDuplicatesButton(removeDuplicatesEnabled);
-        
+
         elements.removeDuplicatesBtn.addEventListener('click', () => {
             const currentState = localStorage.getItem('rep_remove_duplicates') !== 'false';
             const newState = !currentState;
-            
+
             localStorage.setItem('rep_remove_duplicates', newState.toString());
             updateRemoveDuplicatesButton(newState);
-            
+
             // If enabling, remove existing duplicates
             if (newState) {
                 const removedCount = actions.request.removeDuplicates();
@@ -143,10 +230,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-    
+
     function updateRemoveDuplicatesButton(enabled) {
         if (!elements.removeDuplicatesBtn) return;
-        
+
         if (enabled) {
             elements.removeDuplicatesBtn.classList.add('active');
             elements.removeDuplicatesBtn.title = 'Remove duplicate requests (enabled)';
@@ -162,7 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             e.stopPropagation();
             console.log('Clear all button clicked');
-            
+
             // In Firefox DevTools, window.confirm may not work properly
             // So we'll skip confirmation and clear directly
             // If you want confirmation, you can add a custom modal instead
@@ -190,7 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.stopPropagation();
             moreMenu.classList.toggle('hidden');
         });
-        
+
         // Close menu when clicking outside
         document.addEventListener('click', (e) => {
             if (!moreMenu.contains(e.target) && e.target !== moreMenuBtn) {
@@ -210,7 +297,38 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-    
+
+    // Filter Static Files Toggle (More Menu)
+    const filterStaticBtn = document.getElementById('filter-static-btn');
+    if (filterStaticBtn) {
+        const updateFilterStaticBtn = (enabled) => {
+            const statusDiv = filterStaticBtn.querySelector('.filter-static-status');
+            const iconDiv = filterStaticBtn.querySelector('.filter-static-icon');
+            if (enabled) {
+                statusDiv.textContent = 'ON';
+                statusDiv.style.color = '#4caf50'; // Green
+                filterStaticBtn.classList.add('active');
+            } else {
+                statusDiv.textContent = 'OFF';
+                statusDiv.style.color = '#f44336'; // Red
+                filterStaticBtn.classList.remove('active');
+            }
+        };
+
+        // Initialize state
+        const isStaticFilterEnabled = localStorage.getItem('rep_filter_static_main') !== 'false';
+        updateFilterStaticBtn(isStaticFilterEnabled);
+
+        filterStaticBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Keep menu open
+            const current = localStorage.getItem('rep_filter_static_main') !== 'false';
+            const newState = !current;
+            localStorage.setItem('rep_filter_static_main', newState.toString());
+            updateFilterStaticBtn(newState);
+            console.log('[Main] Static file filtering toggled:', newState);
+        });
+    }
+
     // Close more menu after clicking an item
     if (moreMenu) {
         moreMenu.addEventListener('click', (e) => {
