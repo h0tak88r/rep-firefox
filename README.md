@@ -38,7 +38,9 @@ rep+ is a lightweight Firefox DevTools extension inspired by Burp Suite's Repeat
 [![rep+](https://img.shields.io/badge/rep%2B%20Chrome%20Extension-Install%20Now-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/rep+/dhildnnjbegaggknfkagdpnballiepfm)
 
 ### Firefox
-Firefox install coming soon! 🦊
+🦊 **Now Available!** Clone and load manually (see [Installation](#installation) below).
+
+> **Note:** This Firefox port includes all features from the Chrome version, plus Auth Analyzer improvements.
 
 
 ## Table of Contents
@@ -79,6 +81,50 @@ Firefox install coming soon! 🦊
 - Bulk replay with 4 attack modes: Sniper, Battering Ram, Pitchfork, Cluster Bomb.
 - Mark positions with `§`, configure payloads, pause/resume long runs.
 - Response diff view to spot changes between baseline and attempts.
+
+### 🔐 Auth Analyzer (Firefox Enhanced)
+Comprehensive authentication and authorization testing toolkit inspired by Burp Suite's Auth Analyzer extension.
+
+#### Key Features
+- **Automatic Cookie Swapping**: Replay requests with different session tokens to detect authorization bypasses
+- **Real-time Analysis**: Automatically analyze all captured requests (optional with domain scope filtering)
+- **Manual Testing**: "Test Auth" button for on-demand single request analysis
+- **Response Comparison Engine**:
+  - **SAME** (🔴 Bypass): Identical responses indicate potential authorization bypass
+  - **SIMILAR** (🟡 Warning): Same status code but slightly different content (90-98% similar)
+  - **DIFFERENT** (🟢 Secure): Properly denied access
+- **Smart Normalization**: Removes dynamic content (timestamps, CSRF tokens, script tags) for accurate comparison
+- **Token Similarity Algorithm**: Uses Jaccard index on word tokens for content-aware comparison
+- **Bulk Replay**: Analyze all captured requests against a different session in one click
+- **Session Management**: Import/export session configurations
+- **Filtering Options**: Scope restriction by domain/URL pattern
+- **Static File Exclusion**: Automatically skip CSS, JS, images, and other static resources
+
+#### Workflow
+1. Configure victim/test session cookie in Auth Analyzer settings
+2. Browse application with privileged account (original session)
+3. Auth Analyzer replays each request with the victim cookie
+4. Results panel shows color-coded analysis:
+   - 🔴 **SAME**: Critical! Unauthorized access granted (potential bypass)
+   - 🟡 **SIMILAR**: Warning! Nearly identical response (investigate further)
+   - 🟢 **DIFFERENT**: Secure! Access properly denied
+
+#### Use Cases
+- **Privilege Escalation Testing**: Test if low-privilege users can access admin endpoints
+- **Horizontal Privilege Escalation**: Test cross-user data access (IDOR)
+- **Session Testing**: Verify endpoints properly check authorization
+- **Bug Bounty Automation**: Bulk test applications for authorization flaws
+
+#### Comparison Engine
+Our Firefox implementation uses an **advanced content-aware comparison** approach:
+- **Normalization**: Removes `<script>`, `<style>`, hidden inputs, timestamps before comparison
+- **Similarity Metric**: Jaccard index (token overlap) instead of byte-level comparison
+- **Advantages over Burp's Auth Analyzer**:
+  - More resilient to dynamic content (timestamps, session IDs, CSRF tokens)
+  - Fewer false positives on modern SPAs and dynamic web applications
+  - Configurable similarity thresholds (98% for SAME, 90% for SIMILAR)
+
+See [Auth Analyzer Documentation](#auth-analyzer-setup) for detailed setup and usage.
 
 ### Extractors & Search
 - Unified Extractor: secrets, endpoints, and parameters from captured JS.
@@ -192,7 +238,8 @@ Firefox install coming soon! 🦊
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/bscript/rep.git
+   git clone https://github.com/h0tak88r/rep-firefox.git
+   cd rep-firefox
    ```
 2. **Open Firefox Debugging**:
    - Navigate to `about:debugging` in your browser.
@@ -228,6 +275,61 @@ If you use a local model (e.g., Ollama) you must allow Firefox extensions to cal
 3. Verify your model exists (e.g., `gemma3:4b`) with `ollama list`.
 4. Reload the extension and try again. If you still see 403, check Ollama logs for details.
 
+
+## Auth Analyzer Setup
+
+### Quick Start
+1. **Click the 🔒 Lock icon** in the sidebar to open Auth Analyzer Results panel
+2. **Click the ⚙️ Settings icon** in the results panel header to configure
+3. **Enter victim/test session cookie** (e.g., `session=abc123; role=user`)
+   - You can paste the entire `Cookie:` header line - it will be auto-sanitized
+   - Or just the cookie value
+4. **Enable Realtime Analysis** (optional):
+   - Toggle ON to automatically analyze all requests
+   - Add scope filter (e.g., `api.example.com`) to limit analysis to specific domains
+5. **Click "Save & Enable"**
+
+### Testing Methods
+
+#### Manual Testing (Recommended for Precision)
+1. Select a request in the main list
+2. Click **"Test Auth"** button (next to Send button)
+3. Request is replayed with your test session
+4. Results appear in Auth Analyzer panel
+
+#### Automatic Testing (High Coverage)
+1. Enable "Realtime Analysis" in settings
+2. Browse the application normally with your privileged account
+3. Auth Analyzer automatically tests each request with the victim session
+4. Review results in real-time
+
+#### Bulk Testing (Retroactive)
+1. Capture requests normally (browse the app)
+2. Open Auth Analyzer Settings
+3. Scroll to "Bulk Replay" section
+4. Enter target domains (comma-separated, optional)
+5. Click **"Run Bulk Replay"**
+6. All matching requests are tested against the victim session
+
+### Reading Results
+- **🔴 SAME**: Response identical to original → **Potential Authorization Bypass!**
+  - Same status code (e.g., 200 OK)
+  - Same response body (after normalization)
+  - **Action**: Investigate immediately - likely unauthorized access
+- **🟡 SIMILAR**: Response very similar (90-98%) → **Warning**
+  - Same status code
+  - Slight content differences (may be timestamps, dynamic IDs)
+  - **Action**: Manual review recommended
+- **🟢 DIFFERENT**: Response differs → **Properly Secured**
+  - Different status code (e.g., 403 vs 200) OR
+  - Significantly different body content
+  - **Action**: Authorization working correctly
+
+### Tips
+- **Clear Cookie Headers**: The tool automatically removes existing cookie headers before swapping to avoid conflicts
+- **Static Files**: Consider filtering out static resources (CSS/JS/images) to reduce noise
+- **Scope**: Use realtime scope filtering to focus on specific API endpoints or subdomains
+- **Export Results**: Results are stored per session - you can export via Storage API
 
 ## Permissions & Privacy
 - **Optional**: `webRequest` + `<all_urls>` only when you enable multi-tab capture.  
