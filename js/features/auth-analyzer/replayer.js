@@ -25,9 +25,13 @@ export class RequestReplayer {
             modifiedRequest.headers[key] = value;
         }
 
-        // Remove headers
+        // Remove headers (but not ones we just added from session)
+        const sessionHeaderKeys = Object.keys(session.headers).map(k => k.toLowerCase());
         for (const headerName of session.headersToRemove) {
-            delete modifiedRequest.headers[headerName];
+            // Don't remove if we just added it from session
+            if (!sessionHeaderKeys.includes(headerName.toLowerCase())) {
+                delete modifiedRequest.headers[headerName];
+            }
         }
 
         console.log('[Replayer] Modified request headers after session apply:', {
