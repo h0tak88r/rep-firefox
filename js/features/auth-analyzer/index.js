@@ -176,7 +176,7 @@ export class AuthAnalyzer {
         const swappedRequest = {
             url: request.url || request.request?.url,
             method: request.method || request.request?.method,
-            headers: { ...cleanHeaders, 'Cookie': swapCookieValue },
+            headers: cleanHeaders, // Don't add Cookie here - session building will handle it
             body: requestBody
         };
 
