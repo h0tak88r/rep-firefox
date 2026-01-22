@@ -5,6 +5,7 @@ export const filterState = {
     starFilterActive: false, // Whether star filter is active
     currentColorFilter: 'all', // all, red, green, blue, etc.
     currentSearchTerm: '',
-    useRegex: false
+    useRegex: false,
+    hostnameOnlyMode: false // Whether search bar filters by hostname only
 };
 

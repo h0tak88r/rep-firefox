@@ -94,16 +94,37 @@ export class RequestReplayer {
                 cookieMatch: rawRequest.match(/Cookie: ([^\n]+)/)?.[1]?.substring(0, 100)
             });
 
-            // Use existing parseRequest and sendRequest infrastructure
-            const useHttps = modifiedRequest.url.startsWith('https://');
-            const { url, options } = parseRequest(rawRequest, useHttps);
+            // Prepare fetch options
+            const url = modifiedRequest.url; // Use the modified request URL directly
+            const options = {
+                method: method,
+                headers: modifiedRequest.headers,
+                isAuthAnalyzer: true, // Mark as Auth Analyzer request
+                redirect: 'follow', // Follow redirects to get response bodies
+                credentials: 'omit' // Don't send browser cookies
+            };
+
+            // Add body if present
+            if (modifiedRequest.body) {
+                options.body = modifiedRequest.body;
+            }
+
+            // Add Auth Analyzer markers for background script cookie injection
+            options.headers['X-Rep-Plus-Replay'] = 'true';
+
+            // If we have a Cookie header, move it to special header for background script
+            if (options.headers['Cookie']) {
+                options.headers['X-Rep-Plus-Cookie'] = options.headers['Cookie'];
+                delete options.headers['Cookie']; // Remove from fetch - background will inject it
+            }
 
             console.log('[Replayer] Parsed request:', {
                 url,
                 method: options.method,
                 headers: options.headers,
-                hasCookie: !!options.headers['Cookie'],
-                cookiePreview: options.headers['Cookie']?.substring(0, 100)
+                hasReplayMarker: !!options.headers['X-Rep-Plus-Replay'],
+                hasCookieToInject: !!options.headers['X-Rep-Plus-Cookie'],
+                cookiePreview: options.headers['X-Rep-Plus-Cookie']?.substring(0, 100)
             });
 
             const result = await sendRequest(url, options);

@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="css/panel.css">
     <link rel="stylesheet" href="css/json-viewer.css">
     <link rel="stylesheet" href="css/auth-analyzer-config-panel.css">
+    <link rel="stylesheet" href="css/rep-config-panel.css">
     <link rel="stylesheet" href="css/auth-analyzer-panel.css">
     <!-- Highlight.js for syntax highlighting -->
     <link rel="stylesheet" href="css/github-dark.min.css" id="hljs-style">
@@ -16,15 +17,6 @@
 
 <body>
     <!-- Promotional Banner -->
-    <div id="promo-banner" class="promo-banner">
-        <div class="promo-content">
-            <span>⭐ Give rep+ a star on <a href="https://github.com/bscript/rep" target="_blank">GitHub</a> and consider
-                <a href="https://github.com/sponsors/bscript" target="_blank">sponsoring</a> on GitHub or
-                <a href="https://opencollective.com/rep" target="_blank">Open Collective</a>!</span>
-        </div>
-        <button id="close-banner" class="close-banner" title="Dismiss">×</button>
-    </div>
-
     <div class="container">
         <!-- Left Sidebar: Request List -->
         <div class="sidebar">
@@ -57,23 +49,6 @@
                                     d="M12 5.83L15.17 9l1.41-1.41L12 3 7.41 7.59 8.83 9 12 5.83zm0 12.34L8.83 15l-1.41 1.41L12 21l4.59-4.59L15.17 15 12 18.17z" />
                             </svg>
                         </button>
-                        <button id="llm-chat-toggle-btn" class="icon-btn ai-icon-btn" title="Rep+ AI Assistance">
-                            <svg class="ai-icon" viewBox="0 0 24 24" width="16" height="16" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                    d="M12 2C8.13 2 5 5.13 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.87-3.13-7-7-7z"
-                                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-                                    stroke-linejoin="round" fill="none" />
-                                <circle cx="9" cy="9" r="1" fill="currentColor" />
-                                <circle cx="15" cy="9" r="1" fill="currentColor" />
-                                <path d="M9 13c.5.5 1.5 1 3 1s2.5-.5 3-1" stroke="currentColor" stroke-width="1.5"
-                                    stroke-linecap="round" />
-                                <circle class="ai-sparkle ai-sparkle-1" cx="4" cy="6" r="0.8" fill="currentColor" />
-                                <circle class="ai-sparkle ai-sparkle-2" cx="20" cy="8" r="0.8" fill="currentColor" />
-                                <circle class="ai-sparkle ai-sparkle-3" cx="6" cy="18" r="0.8" fill="currentColor" />
-                                <circle class="ai-sparkle ai-sparkle-4" cx="18" cy="20" r="0.8" fill="currentColor" />
-                            </svg>
-                        </button>
                         <button id="toggle-sidebar-btn" class="icon-btn" title="Hide sidebar">
                             <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
                                 <path d="M4 4h4v16H4V4zm5 0h11v2H9V4zm0 6h11v2H9v-2zm0 6h11v2H9v-2z" />
@@ -99,6 +74,35 @@
                                 <span class="badge"
                                     style="display: none; background: #f44336; color: white; padding: 1px 5px; border-radius: 10px; font-size: 9px; margin-left: auto;"></span>
                             </button>
+                            <button id="rep-config-btn" class="more-menu-item">
+                                <svg viewBox="0 0 24 24" width="14" height="14">
+                                    <path
+                                        d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94L14.4 2.81c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"
+                                        fill="currentColor" />
+                                </svg>
+                                <span>rep+ Config</span>
+                            </button>
+                            <button id="llm-chat-toggle-btn" class="more-menu-item" title="Rep+ AI Assistance">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path
+                                        d="M12 2C8.13 2 5 5.13 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.87-3.13-7-7-7z"
+                                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                        stroke-linejoin="round" fill="none" />
+                                    <circle cx="9" cy="9" r="1" fill="currentColor" />
+                                    <circle cx="15" cy="9" r="1" fill="currentColor" />
+                                    <path d="M9 13c.5.5 1.5 1 3 1s2.5-.5 3-1" stroke="currentColor" stroke-width="1.5"
+                                        stroke-linecap="round" />
+                                    <circle class="ai-sparkle ai-sparkle-1" cx="4" cy="6" r="0.8" fill="currentColor" />
+                                    <circle class="ai-sparkle ai-sparkle-2" cx="20" cy="8" r="0.8"
+                                        fill="currentColor" />
+                                    <circle class="ai-sparkle ai-sparkle-3" cx="6" cy="18" r="0.8"
+                                        fill="currentColor" />
+                                    <circle class="ai-sparkle ai-sparkle-4" cx="18" cy="20" r="0.8"
+                                        fill="currentColor" />
+                                </svg>
+                                <span>AI Assistant</span>
+                            </button>
                             <button id="settings-btn" class="more-menu-item">
                                 <svg viewBox="0 0 24 24" width="14" height="14">
                                     <path
@@ -119,13 +123,6 @@
                                 </svg>
                                 <span>Export</span>
                             </button>
-                            <div class="more-menu-divider"></div>
-                            <button id="filter-static-btn" class="more-menu-item"
-                                title="Filter out static files (JS, CSS, Images, etc.) from the main list">
-                                <div class="filter-static-icon">❌</div>
-                                <span>Filter Static</span>
-                                <div class="filter-static-status" style="margin-left: auto; font-size: 10px;">OFF</div>
-                            </button>
                             <button id="extractor-btn" class="more-menu-item"
                                 title="Extract secrets, endpoints, parameters, and search responses">
                                 <svg viewBox="0 0 24 24" width="14" height="14">
@@ -140,82 +137,7 @@
                     <input type="file" id="import-file" accept=".json" style="display: none;">
                 </div>
                 <div class="filters">
-                    <div class="method-filter" id="method-filter">
-                        <button id="method-filter-btn" class="filter-btn method-filter-btn" title="Filter by method">
-                            <span id="method-filter-label">All</span>
-                            <span class="method-caret">▾</span>
-                        </button>
-                        <div id="method-filter-menu" class="method-filter-menu">
-                            <div class="method-filter-actions">
-                                <button class="method-filter-action-btn" id="method-select-all">Select all</button>
-                                <button class="method-filter-action-btn" id="method-clear-all">Clear all</button>
-                            </div>
-                            <div class="method-filter-divider"></div>
-                            <div class="method-filter-item" data-filter="GET">
-                                <input type="checkbox" class="method-checkbox" data-filter="GET">
-                                <span>GET</span>
-                            </div>
-                            <div class="method-filter-item" data-filter="POST">
-                                <input type="checkbox" class="method-checkbox" data-filter="POST">
-                                <span>POST</span>
-                            </div>
-                            <div class="method-filter-item" data-filter="PUT">
-                                <input type="checkbox" class="method-checkbox" data-filter="PUT">
-                                <span>PUT</span>
-                            </div>
-                            <div class="method-filter-item" data-filter="DELETE">
-                                <input type="checkbox" class="method-checkbox" data-filter="DELETE">
-                                <span>DELETE</span>
-                            </div>
-                            <div class="method-filter-item" data-filter="PATCH">
-                                <input type="checkbox" class="method-checkbox" data-filter="PATCH">
-                                <span>PATCH</span>
-                            </div>
-                            <div class="method-filter-item" data-filter="HEAD">
-                                <input type="checkbox" class="method-checkbox" data-filter="HEAD">
-                                <span>HEAD</span>
-                            </div>
-                            <div class="method-filter-item" data-filter="OPTIONS">
-                                <input type="checkbox" class="method-checkbox" data-filter="OPTIONS">
-                                <span>OPTIONS</span>
-                            </div>
-                            <div class="method-filter-item" data-filter="TRACE">
-                                <input type="checkbox" class="method-checkbox" data-filter="TRACE">
-                                <span>TRACE</span>
-                            </div>
-                            <div class="method-filter-divider"></div>
-                            <div class="method-filter-item" data-filter="XHR"
-                                title="Show only XHR/Fetch requests (exclude images, fonts, text files)">
-                                <input type="checkbox" class="method-checkbox" data-filter="XHR">
-                                <span>XHR/Fetch</span>
-                            </div>
-                        </div>
-                    </div>
-                    <button id="color-filter-btn" class="filter-btn" title="Filter by Color">
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
-                            <path
-                                d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" />
-                        </svg>
-                    </button>
                     <button class="filter-btn" data-filter="starred" title="Show Starred">★</button>
-                    <div class="divider-vertical"
-                        style="width: 1px; height: 20px; background: var(--border-color); margin: 0 4px;"></div>
-                    <button id="block-toggle-btn" class="icon-btn block-toggle-btn" title="Block incoming requests"
-                        aria-label="Block incoming requests">
-                        <svg class="block-icon" viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
-                            <path d="M8 5h3v14H8zm5 0h3v14h-3z" />
-                        </svg>
-                    </button>
-                    <div class="forward-combo" id="forward-combo">
-                        <button id="forward-btn" class="icon-btn forward-combo-btn" title="Forward blocked requests">
-                            <span class="forward-label">Forward (0)</span>
-                            <span class="forward-caret" data-caret>▾</span>
-                        </button>
-                        <div id="forward-menu" class="forward-menu">
-                            <div class="forward-menu-item active" data-mode="next">Forward next</div>
-                            <div class="forward-menu-item" data-mode="all">Forward all</div>
-                        </div>
-                    </div>
                 </div>
 
             </div>
@@ -643,36 +565,50 @@
             </div>
 
             <div class="auth-config-section">
-                <h4>Authorization Header / Cookie to Swap</h4>
+                <h4>Authorization Headers Configuration</h4>
                 <div class="auth-config-description">
-                    Enter the full header value (e.g., Cookie string or Authorization header) from a <strong>valid,
-                        authenticated session</strong> for the <strong>victim/test user</strong>.
-                    This value will replace the original header in replayed requests.
+                    Configure test session credentials (cookie, header, or URL param).
                 </div>
 
-                <!-- Header Type Selector -->
-                <label class="auth-config-label">Header Type</label>
-                <select id="auth-header-type" class="auth-config-input" style="min-height: 40px; margin-bottom: 12px;">
-                    <option value="cookie">Cookie</option>
-                    <option value="authorization">Authorization (Bearer Token)</option>
-                    <option value="custom">Custom Header</option>
-                </select>
+                <!-- Cookie Configuration -->
+                <div style="margin-bottom: 20px; padding: 12px; background: var(--bg-secondary); border-radius: 8px;">
+                    <label
+                        style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500; margin-bottom: 12px;">
+                        <input type="checkbox" id="auth-use-cookie">
+                        <span>🍪 Use Session Cookie</span>
+                    </label>
 
-                <!-- Custom Header Name (only shown for custom type) -->
-                <div id="auth-custom-header-name-container" style="display: none; margin-bottom: 12px;">
-                    <label class="auth-config-label">Custom Header Name</label>
-                    <input type="text" id="auth-custom-header-name" class="auth-config-input" style="min-height: 40px;"
-                        placeholder="X-Custom-Auth">
+                    <div id="auth-cookie-config" style="margin-left: 24px; display: none;">
+                        <label class="auth-config-label">Cookie Value</label>
+                        <textarea id="auth-cookie-value" class="auth-config-input" style="min-height: 60px;"
+                            placeholder="session=abc12345; user_role=admin"></textarea>
+                        <div class="auth-config-hint">
+                            <strong>Tip:</strong> Copy the full Cookie header from test session.
+                        </div>
+                    </div>
                 </div>
 
-                <label class="auth-config-label" id="auth-header-value-label">Cookie Value (e.g. session=...)</label>
-                <textarea id="auth-config-header-input" class="auth-config-input"
-                    placeholder="session=abc12345; user_role=admin"></textarea>
-                <div class="auth-config-hint" id="auth-header-hint">
-                    <strong>Tip:</strong> Log in as the test user in another browser/container, copy their Cookie
-                    header,
-                    and paste it here.
+                <!-- Custom Header Configuration -->
+                <div style="margin-bottom: 20px; padding: 12px; background: var(--bg-secondary); border-radius: 8px;">
+                    <label
+                        style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500; margin-bottom: 12px;">
+                        <input type="checkbox" id="auth-use-custom-header">
+                        <span>🔑 Use Custom Header(s)</span>
+                    </label>
+
+                    <div id="auth-custom-header-config" style="margin-left: 24px; display: none;">
+                        <div id="auth-custom-headers-list"></div>
+                        <button id="auth-add-custom-header-btn" type="button"
+                            style="margin-top: 8px; padding: 6px 12px; background: var(--accent-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                            + Add Custom Header
+                        </button>
+                        <div class="auth-config-hint" style="margin-top: 8px;">
+                            <strong>Tip:</strong> For Bearer tokens, include "Bearer " prefix.
+                        </div>
+                    </div>
                 </div>
+
+
             </div>
 
             <!-- Realtime Analysis Settings -->
@@ -707,21 +643,22 @@
                 </div>
             </div>
 
-            <div class="auth-config-help">
-                <div class="auth-config-help-title">
-                    <span>💡 How it works</span>
-                </div>
-                <div class="auth-config-help-text">
-                    When enabled, Auth Analyzer listens for every HTTP request you make in the current tab.
-                    It then automatically:
-                    <ul class="auth-config-help-list">
-                        <li>Replays the request with the <strong>Viktim/Test Session</strong> cookie/header you
-                            provided.
-                        </li>
-                        <li>Compares the response with the original response (Your Session).</li>
-                        <li>Flags any <strong>SAME</strong> responses (Potential Bypass) or <strong>SIMILAR</strong>
-                            responses (Warning).</li>
-                    </ul>
+            <!-- URL Parameter Swapping Section -->
+            <div class="auth-config-section"
+                style="margin-top: 20px; border-top: 2px solid var(--border-color); padding-top: 20px;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="auth-use-url-param">
+                    <span style="font-weight: 600; font-size: 13px;">🔗 Use URL Parameter(s)</span>
+                </label>
+                <div id="auth-url-param-config" style="display: none; margin-top: 12px;">
+                    <div id="auth-url-params-list"></div>
+                    <button id="auth-add-url-param-btn" type="button"
+                        style="margin-top: 8px; padding: 6px 12px; background: var(--accent-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                        + Add URL Parameter
+                    </button>
+                    <div class="auth-config-hint" style="margin-top: 8px;">
+                        <strong>Tip:</strong> Replaces query param value in URL.
+                    </div>
                 </div>
             </div>
 
@@ -746,6 +683,50 @@
             <button id="auth-config-disable-btn" class="auth-config-btn auth-config-btn-secondary"
                 disabled>Disable</button>
             <button id="auth-config-save-btn" class="auth-config-btn auth-config-btn-primary">Save & Enable</button>
+        </div>
+    </div>
+
+    <!-- rep+ Global Configuration Panel -->
+    <div id="rep-config-panel">
+        <div class="auth-config-header">
+            <h3>⚙️ rep+ Configuration</h3>
+            <button id="rep-config-close-btn" class="auth-config-close" title="Close">×</button>
+        </div>
+        <div class="auth-config-content">
+            <!-- Filter Static Section -->
+            <div class="auth-config-section">
+                <h4>🗂️ Filter Static Files</h4>
+                <div class="auth-config-description">
+                    Remove static resources (JS, CSS, Images, Fonts, etc.) from the request list to focus on API
+                    endpoints.
+                </div>
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-top: 12px;">
+                    <input type="checkbox" id="rep-config-filter-static">
+                    <span>Enable Static File Filtering</span>
+                </label>
+            </div>
+
+            <!-- Scope (Hostname Filter) Section -->
+            <div class="auth-config-section"
+                style="margin-top: 24px; border-top: 2px solid var(--border-color); padding-top: 24px;">
+                <h4>🌐 Scope (Hostname Filter)</h4>
+                <div class="auth-config-description">
+                    Only show requests from specific hostname(s). This filters the entire request list to your target
+                    scope.
+                </div>
+                <label class="auth-config-label" style="margin-top: 12px;">Hostname(s) - comma separated (leave empty
+                    for all)</label>
+                <input type="text" id="rep-config-scope-hostnames" class="auth-config-input" style="min-height: 40px;"
+                    placeholder="e.g., api.example.com, app.test.com">
+                <div class="auth-config-hint">
+                    <strong>Tip:</strong> Use this to focus on specific domains. All requests from other domains will be
+                    hidden.
+                </div>
+            </div>
+        </div>
+        <div class="auth-config-footer">
+            <button id="rep-config-cancel-btn" class="auth-config-btn auth-config-btn-secondary">Cancel</button>
+            <button id="rep-config-save-btn" class="auth-config-btn auth-config-btn-primary">Save</button>
         </div>
     </div>
 

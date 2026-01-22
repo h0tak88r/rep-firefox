@@ -34,9 +34,6 @@ rep+ is a lightweight Firefox DevTools extension inspired by Burp Suite's Repeat
 
 ## 🚀 Install rep+ Extension
 
-### Chrome
-[![rep+](https://img.shields.io/badge/rep%2B%20Chrome%20Extension-Install%20Now-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/rep+/dhildnnjbegaggknfkagdpnballiepfm)
-
 ### Firefox
 🦊 **Now Available!** Clone and load manually (see [Installation](#installation) below).
 
@@ -241,7 +238,7 @@ See [Auth Analyzer Documentation](#auth-analyzer-setup) for detailed setup and u
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/h0tak88r/rep-firefox.git
+   git clone https://github.com/bscript/rep.git
    cd rep-firefox
    ```
 2. **Open Firefox Debugging**:
@@ -377,7 +374,7 @@ rep+ is best for quick testing, replaying, and experimenting — not full low-le
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=repplus/rep-firefox&type=date)](https://www.star-history.com/#repplus/rep-firefox&type=date)
+[![Star History Chart](https://api.star-history.com/svg?repos=bscript/rep&type=date)](https://www.star-history.com/#bscript/rep&type=date)
 
 
 ## Found a Bug or Issue?

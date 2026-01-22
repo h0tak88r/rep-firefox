@@ -24,7 +24,7 @@ export const requestActions = {
      */
     isDuplicate(newRequest, existingRequests) {
         if (!newRequest || !newRequest.request) return false;
-        
+
         const newReq = newRequest.request;
         const newMethod = (newReq.method || 'GET').toUpperCase().trim();
         const newUrl = (newReq.url || '').trim();
@@ -32,11 +32,11 @@ export const requestActions = {
         const newHeaders = this.normalizeHeaders(newReq.headers);
         const newPageUrl = (newRequest.pageUrl || '').trim();
         const newSignature = `${newMethod}|${newUrl}|${newHeaders}|${newBody}|${newPageUrl}`;
-        
+
         // Check against existing requests
         for (const existing of existingRequests) {
             if (!existing || !existing.request) continue;
-            
+
             const existingReq = existing.request;
             const existingMethod = (existingReq.method || 'GET').toUpperCase().trim();
             const existingUrl = (existingReq.url || '').trim();
@@ -44,16 +44,16 @@ export const requestActions = {
             const existingHeaders = this.normalizeHeaders(existingReq.headers);
             const existingPageUrl = (existing.pageUrl || '').trim();
             const existingSignature = `${existingMethod}|${existingUrl}|${existingHeaders}|${existingBody}|${existingPageUrl}`;
-            
+
             // Compare signatures
             if (newSignature === existingSignature) {
                 return true;
             }
         }
-        
+
         return false;
     },
-    
+
     /**
      * Normalize headers for comparison
      * @param {Array|Object} headers - Headers in array or object format
@@ -61,7 +61,7 @@ export const requestActions = {
      */
     normalizeHeaders(headers) {
         if (!headers) return '';
-        
+
         let headerArray = [];
         if (Array.isArray(headers)) {
             headerArray = headers;
@@ -70,7 +70,7 @@ export const requestActions = {
         } else {
             return '';
         }
-        
+
         // Filter out pseudo-headers (HTTP/2) and normalize
         const normalized = headerArray
             .filter(h => {
@@ -85,10 +85,10 @@ export const requestActions = {
             })
             .sort()
             .join('|');
-        
+
         return normalized;
     },
-    
+
     /**
      * Remove duplicate requests from state
      * @returns {number} Number of duplicates removed
@@ -96,37 +96,37 @@ export const requestActions = {
     removeDuplicates() {
         const originalLength = state.requests.length;
         if (originalLength === 0) return 0;
-        
+
         const uniqueRequests = [];
         const seen = new Set();
-        
+
         for (const request of state.requests) {
             if (!request || !request.request) {
                 // Invalid request, keep it but don't check for duplicates
                 uniqueRequests.push(request);
                 continue;
             }
-            
+
             const req = request.request;
             const method = (req.method || 'GET').toUpperCase().trim();
             const url = (req.url || '').trim();
             const body = (req.postData && req.postData.text) ? String(req.postData.text).trim() : '';
-            
+
             // Normalize headers using the helper method
             const headers = this.normalizeHeaders(req.headers);
-            
+
             // Include pageUrl in signature to differentiate requests from different websites/tabs
             // This ensures requests from different contexts are not treated as duplicates
             const pageUrl = (request.pageUrl || '').trim();
-            
+
             // Create signature (includes pageUrl to preserve context)
             const signature = `${method}|${url}|${headers}|${body}|${pageUrl}`;
-            
+
             // Debug: log first few signatures to diagnose issues
             if (seen.size < 3) {
                 console.log(`Signature ${seen.size + 1}:`, signature.substring(0, 100) + '...');
             }
-            
+
             if (!seen.has(signature)) {
                 seen.add(signature);
                 uniqueRequests.push(request);
@@ -134,17 +134,17 @@ export const requestActions = {
                 console.log('Duplicate found:', signature.substring(0, 100) + '...');
             }
         }
-        
+
         console.log(`removeDuplicates: ${originalLength} total, ${seen.size} unique, ${originalLength - seen.size} duplicates`);
-        
+
         const removedCount = originalLength - uniqueRequests.length;
-        
+
         if (removedCount > 0) {
             // Store selected request reference before clearing
             const selectedRequestRef = state.selectedRequest;
-            
+
             state.requests = uniqueRequests;
-            
+
             // Clear selection if selected request was removed
             if (selectedRequestRef && !uniqueRequests.includes(selectedRequestRef)) {
                 state.selectedRequest = null;
@@ -155,26 +155,26 @@ export const requestActions = {
                 // in case the array was recreated (though in this case it's the same object)
                 state.selectedRequest = selectedRequestRef;
             }
-            
+
             // Clear the request list UI
             const requestList = document.getElementById('request-list');
             if (requestList) {
                 requestList.innerHTML = '';
             }
-            
+
             // Re-render all unique requests from scratch
             // We need to emit REQUEST_RENDERED for each request to rebuild the DOM
             uniqueRequests.forEach((request, index) => {
                 events.emit(EVENT_NAMES.REQUEST_RENDERED, { request, index });
             });
-            
+
             // Also trigger filterRequests to handle grouping and filtering
             events.emit(EVENT_NAMES.UI_UPDATE_REQUEST_LIST);
         }
-        
+
         return removedCount;
     },
-    
+
     /**
      * Add a new request to state
      * @param {Object} request - Request object to add
@@ -187,23 +187,23 @@ export const requestActions = {
         if (typeof request.name !== 'string') {
             request.name = null;
         }
-        
+
         // Check for duplicates if enabled (default: true)
         const removeDuplicatesEnabled = localStorage.getItem('rep_remove_duplicates') !== 'false';
         if (removeDuplicatesEnabled && this.isDuplicate(request, state.requests)) {
             // Skip adding duplicate
             return null;
         }
-        
+
         state.requests.push(request);
         const index = state.requests.length - 1;
-        
+
         // Emit event automatically
         events.emit(EVENT_NAMES.REQUEST_RENDERED, { request, index });
-        
+
         return index;
     },
-    
+
     /**
      * Select a request
      * @param {Object|null} request - Request object to select, or null to deselect
@@ -211,11 +211,11 @@ export const requestActions = {
      */
     select(request, index) {
         state.selectedRequest = request;
-        
+
         // Emit event automatically
         events.emit(EVENT_NAMES.REQUEST_SELECTED, { request, index });
     },
-    
+
     /**
      * Clear all requests and reset related state
      */
@@ -233,12 +233,12 @@ export const requestActions = {
         // Clear starred pages and domains
         state.starredPages.clear();
         state.starredDomains.clear();
-        
+
         // Emit events
         events.emit(EVENT_NAMES.STATE_REQUESTS_CLEARED);
         events.emit(EVENT_NAMES.UI_CLEAR_ALL);
     },
-    
+
     /**
      * Toggle star status of a request
      * @param {Object} request - Request object to toggle
@@ -246,10 +246,10 @@ export const requestActions = {
      */
     toggleStar(request, index) {
         request.starred = !request.starred;
-        
+
         // Emit result event (not action event - action events are for triggering actions, not results)
         events.emit(EVENT_NAMES.REQUEST_STAR_UPDATED, { request, index });
-        
+
         // If star filter is active, trigger filter update
         if (state.starFilterActive) {
             const requestList = document.getElementById('request-list');
@@ -257,7 +257,7 @@ export const requestActions = {
             events.emit('request:filtered', { preserveScroll: true, scrollTop });
         }
     },
-    
+
     /**
      * Toggle star for all requests in a group
      * @param {string} type - 'page' or 'domain'
@@ -266,7 +266,7 @@ export const requestActions = {
      */
     toggleGroupStar(type, hostname, starred) {
         const isPage = type === 'page';
-        
+
         // Update starring state
         if (isPage) {
             if (starred) {
@@ -281,12 +281,12 @@ export const requestActions = {
                 state.starredDomains.delete(hostname);
             }
         }
-        
+
         // Update all matching requests
         state.requests.forEach((req, index) => {
             const reqPageHostname = req.pageUrl ? new URL(req.pageUrl).hostname : null;
             const reqHostname = new URL(req.request.url).hostname;
-            
+
             let shouldUpdate = false;
             if (isPage) {
                 // Only update if it belongs to the page AND is first-party (same hostname)
@@ -294,17 +294,17 @@ export const requestActions = {
             } else {
                 if (reqHostname === hostname) shouldUpdate = true;
             }
-            
+
             if (shouldUpdate && req.starred !== starred) {
                 req.starred = starred;
                 events.emit('request:star-updated', { index, starred });
             }
         });
-        
+
         // Emit events
         events.emit(EVENT_NAMES.REQUEST_FILTERED);
     },
-    
+
     /**
      * Set color for a request
      * @param {number} index - Index of the request
@@ -313,12 +313,12 @@ export const requestActions = {
     setColor(index, color) {
         if (index >= 0 && index < state.requests.length) {
             state.requests[index].color = color;
-            
+
             // Emit event
             events.emit(EVENT_NAMES.REQUEST_COLOR_CHANGED, { index, color });
         }
     },
-    
+
     /**
      * Delete a request
      * @param {number} index - Index of the request to delete
@@ -327,18 +327,18 @@ export const requestActions = {
         if (index >= 0 && index < state.requests.length) {
             const request = state.requests[index];
             state.requests.splice(index, 1);
-            
+
             // If deleted request was selected, clear selection
             if (state.selectedRequest === request) {
                 state.selectedRequest = null;
                 events.emit(EVENT_NAMES.REQUEST_SELECTED, { request: null, index: -1 });
             }
-            
+
             // Emit event
             events.emit(EVENT_NAMES.UI_UPDATE_REQUEST_LIST);
         }
     },
-    
+
     /**
      * Delete all requests in a group
      * @param {string} type - 'page' or 'domain'
@@ -347,30 +347,30 @@ export const requestActions = {
      */
     deleteGroup(type, hostname) {
         const isPage = type === 'page';
-        
+
         // Find requests to remove
         const requestsToRemove = [];
         state.requests.forEach((req, index) => {
             const reqPageHostname = getHostname(req.pageUrl || req.request.url);
             const reqHostname = getHostname(req.request.url);
-            
+
             let shouldRemove = false;
             if (isPage) {
                 shouldRemove = reqPageHostname === hostname;
             } else {
                 shouldRemove = reqHostname === hostname;
             }
-            
+
             if (shouldRemove) {
                 requestsToRemove.push(index);
             }
         });
-        
+
         // Remove requests in reverse order to maintain correct indices
         requestsToRemove.reverse().forEach(index => {
             state.requests.splice(index, 1);
         });
-        
+
         // Also drop any blocked (queued) requests belonging to this group
         const beforeQueue = state.blockedQueue.length;
         state.blockedQueue = state.blockedQueue.filter(req => {
@@ -382,7 +382,7 @@ export const requestActions = {
             return reqHostname !== hostname;
         });
         const removedFromQueue = beforeQueue - state.blockedQueue.length;
-        
+
         // Clear starred state for this group
         if (isPage) {
             state.starredPages.delete(hostname);
@@ -390,7 +390,7 @@ export const requestActions = {
             state.starredDomains.delete(hostname);
         }
         state.domainsWithAttackSurface.delete(hostname);
-        
+
         // Clear attack surface categories for deleted requests
         Object.keys(state.attackSurfaceCategories).forEach(key => {
             const reqIndex = parseInt(key);
@@ -412,13 +412,13 @@ export const requestActions = {
                 delete state.attackSurfaceCategories[key];
             }
         });
-        
+
         // Clear selected request if it was deleted
         const selectedIndex = state.requests.indexOf(state.selectedRequest);
         if (state.selectedRequest && (selectedIndex === -1 || requestsToRemove.includes(selectedIndex))) {
             state.selectedRequest = null;
         }
-        
+
         // Emit events
         events.emit(EVENT_NAMES.REQUEST_FILTERED);
         if (removedFromQueue > 0) {
@@ -427,7 +427,7 @@ export const requestActions = {
         if (state.selectedRequest === null) {
             events.emit(EVENT_NAMES.UI_CLEAR_ALL);
         }
-        
+
         return removedFromQueue;
     }
 };
@@ -440,19 +440,19 @@ export const filterActions = {
      */
     setFilter(filter) {
         state.currentFilter = filter;
-        
+
         // Emit event
         events.emit(EVENT_NAMES.STATE_FILTER_CHANGED, { filter });
         events.emit(EVENT_NAMES.UI_UPDATE_REQUEST_LIST);
     },
-    
+
     /**
      * Set selected HTTP methods
      * @param {Set<string>} methods - Set of HTTP methods
      */
     setSelectedMethods(methods) {
         state.selectedMethods = methods;
-        
+
         // Update currentFilter based on selection
         if (methods.size === 0) {
             state.currentFilter = 'all';
@@ -461,30 +461,30 @@ export const filterActions = {
         } else {
             state.currentFilter = 'multiple';
         }
-        
+
         // Emit events
         events.emit(EVENT_NAMES.STATE_FILTER_CHANGED, { methods });
         events.emit(EVENT_NAMES.UI_UPDATE_REQUEST_LIST);
     },
-    
+
     /**
      * Toggle star filter
      * @param {boolean} active - Whether star filter is active
      */
     setStarFilter(active) {
         state.starFilterActive = active;
-        
+
         if (active) {
             state.currentFilter = 'starred';
         } else {
             state.currentFilter = 'all';
         }
-        
+
         // Emit events
         events.emit(EVENT_NAMES.STATE_FILTER_CHANGED, { starFilter: active });
         events.emit(EVENT_NAMES.UI_UPDATE_REQUEST_LIST);
     },
-    
+
     /**
      * Set search term
      * @param {string} term - Search term
@@ -493,21 +493,33 @@ export const filterActions = {
     setSearch(term, useRegex = false) {
         state.currentSearchTerm = term;
         state.useRegex = useRegex;
-        
+
         // Emit events
         events.emit(EVENT_NAMES.STATE_SEARCH_CHANGED, { term, useRegex });
         events.emit(EVENT_NAMES.UI_UPDATE_REQUEST_LIST);
     },
-    
+
     /**
      * Set color filter
      * @param {string} color - Color to filter by, or 'all'
      */
     setColorFilter(color) {
         state.currentColorFilter = color;
-        
+
         // Emit events
         events.emit(EVENT_NAMES.STATE_FILTER_CHANGED, { color });
+        events.emit(EVENT_NAMES.UI_UPDATE_REQUEST_LIST);
+    },
+
+    /**
+     * Toggle hostname-only search mode
+     * @param {boolean} enabled - Whether hostname-only mode is enabled
+     */
+    toggleHostnameOnlyMode(enabled) {
+        state.hostnameOnlyMode = enabled;
+
+        // Emit events
+        events.emit(EVENT_NAMES.STATE_FILTER_CHANGED, { hostnameOnlyMode: enabled });
         events.emit(EVENT_NAMES.UI_UPDATE_REQUEST_LIST);
     }
 };
@@ -525,11 +537,11 @@ export const starringActions = {
         } else {
             state.starredPages.delete(hostname);
         }
-        
+
         // Emit event
         events.emit(EVENT_NAMES.REQUEST_STAR_UPDATED);
     },
-    
+
     /**
      * Toggle star for a domain
      * @param {string} hostname - Domain hostname
@@ -541,7 +553,7 @@ export const starringActions = {
         } else {
             state.starredDomains.delete(hostname);
         }
-        
+
         // Emit event
         events.emit(EVENT_NAMES.REQUEST_STAR_UPDATED);
     }
@@ -555,33 +567,33 @@ export const blockingActions = {
      */
     setBlocking(enabled) {
         state.blockRequests = enabled;
-        
+
         if (enabled) {
             // Clear queue when starting new blocking session
             state.blockedQueue = [];
         }
-        
+
         // Emit event
         events.emit('block-queue:updated');
     },
-    
+
     /**
      * Add request to blocked queue
      * @param {Object} request - Request to add to queue
      */
     addToBlockedQueue(request) {
         state.blockedQueue.push(request);
-        
+
         // Emit event
         events.emit('block-queue:updated');
     },
-    
+
     /**
      * Clear blocked queue
      */
     clearBlockedQueue() {
         state.blockedQueue = [];
-        
+
         // Emit event
         events.emit('block-queue:updated');
     }
@@ -597,18 +609,18 @@ export const timelineActions = {
     setFilter(timestamp, requestIndex) {
         state.timelineFilterTimestamp = timestamp;
         state.timelineFilterRequestIndex = requestIndex;
-        
+
         // Emit UI update event (not action event - action events are for triggering actions, not results)
         events.emit(EVENT_NAMES.UI_UPDATE_REQUEST_LIST);
     },
-    
+
     /**
      * Clear timeline filter
      */
     clear() {
         state.timelineFilterTimestamp = null;
         state.timelineFilterRequestIndex = null;
-        
+
         // Emit event
         events.emit(EVENT_NAMES.UI_UPDATE_REQUEST_LIST);
     }
@@ -629,41 +641,41 @@ export const historyActions = {
                 return;
             }
         }
-        
+
         // If we are in the middle of history and make a change, discard future history
         if (state.historyIndex < state.requestHistory.length - 1) {
             state.requestHistory = state.requestHistory.slice(0, state.historyIndex + 1);
         }
-        
+
         state.requestHistory.push({ rawText, useHttps });
         state.historyIndex = state.requestHistory.length - 1;
-        
+
         // Emit event
         events.emit(EVENT_NAMES.HISTORY_UPDATED);
         events.emit(EVENT_NAMES.UI_UPDATE_HISTORY_BUTTONS);
     },
-    
+
     /**
      * Navigate history backward
      */
     goBack() {
         if (state.historyIndex > 0) {
             state.historyIndex--;
-            events.emit(EVENT_NAMES.HISTORY_NAVIGATED, { 
+            events.emit(EVENT_NAMES.HISTORY_NAVIGATED, {
                 index: state.historyIndex,
                 entry: state.requestHistory[state.historyIndex]
             });
             events.emit(EVENT_NAMES.UI_UPDATE_HISTORY_BUTTONS);
         }
     },
-    
+
     /**
      * Navigate history forward
      */
     goForward() {
         if (state.historyIndex < state.requestHistory.length - 1) {
             state.historyIndex++;
-            events.emit(EVENT_NAMES.HISTORY_NAVIGATED, { 
+            events.emit(EVENT_NAMES.HISTORY_NAVIGATED, {
                 index: state.historyIndex,
                 entry: state.requestHistory[state.historyIndex]
             });
@@ -681,7 +693,7 @@ export const diffActions = {
     setBaseline(baseline) {
         state.regularRequestBaseline = baseline;
     },
-    
+
     /**
      * Set current response for diff
      * @param {string} response - Current response text
@@ -701,7 +713,7 @@ export const attackSurfaceActions = {
     setCategory(requestIndex, categoryData) {
         state.attackSurfaceCategories[requestIndex] = categoryData;
     },
-    
+
     /**
      * Mark domain as having attack surface
      * @param {string} domain - Domain name
@@ -709,7 +721,7 @@ export const attackSurfaceActions = {
     markDomain(domain) {
         state.domainsWithAttackSurface.add(domain);
     },
-    
+
     /**
      * Set analyzing flag
      * @param {boolean} analyzing - Whether analysis is in progress

@@ -24,6 +24,7 @@ import { initSearch } from './search/index.js';
 import { initAuthAnalyzer } from './features/auth-analyzer/index.js';
 import { initAuthAnalyzerConfigPanel } from './features/auth-analyzer/config-panel.js';
 import { initAuthAnalyzerPanel } from './features/auth-analyzer/panel.js';
+import { initRepConfigPanel } from './ui/rep-config-panel.js';
 
 // UI Modules
 import { setupBlockControls } from './ui/block-controls.js';
@@ -59,6 +60,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.authAnalyzerPanel) {
         window.authAnalyzerPanel.setConfigPanel(authConfigPanel);
     }
+
+    // rep+ Config Panel Initialization
+    const repConfigPanel = initRepConfigPanel();
 
     // Auth Analyzer Toggle (in More Menu)
     const authToggleBtn = document.getElementById('auth-analyzer-toggle');

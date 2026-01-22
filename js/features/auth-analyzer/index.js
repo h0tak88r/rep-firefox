@@ -60,8 +60,13 @@ export class AuthAnalyzer {
             return;
         }
 
-        if (!this.config.swapCookie || this.config.swapCookie.trim() === '' || this.config.swapCookie === 'null') {
-            console.log('[Auth Analyzer] Skipped - no valid cookie configured');
+        // Check if at least one authentication method is configured
+        const hasCookie = this.config.useCookie && this.config.cookieValue && this.config.cookieValue.trim() !== '' && this.config.cookieValue !== 'null';
+        const hasCustomHeader = this.config.useCustomHeader && this.config.customHeaderName && this.config.customHeaderValue;
+        const hasUrlParam = this.config.useUrlParam && this.config.urlParamName && this.config.urlParamValue;
+
+        if (!hasCookie && !hasCustomHeader && !hasUrlParam) {
+            console.log('[Auth Analyzer] Skipped - no valid authentication method configured (cookie, header, or URL param)');
             return;
         }
 
@@ -188,43 +193,80 @@ export class AuthAnalyzer {
         });
 
         try {
-            // Build session based on header type
-            const headerType = this.config.headerType || 'cookie';
-            const headerValue = this.config.swapCookie;
-            const customHeaderName = this.config.customHeaderName || '';
-
-            // Validate header value exists
-            if (!headerValue || !headerValue.trim()) {
-                console.warn('[Auth Analyzer] No swap cookie/header configured, skipping analysis');
-                return;
-            }
-
+            // Build session headers from configuration (supports both cookie AND custom headers)
             let sessionHeaders = {};
             let headersToRemove = [];
 
-            switch (headerType) {
-                case 'authorization':
-                    // For Bearer tokens
-                    const bearerValue = headerValue.startsWith('Bearer ') ? headerValue : `Bearer ${headerValue}`;
-                    sessionHeaders['Authorization'] = bearerValue;
-                    headersToRemove = ['Authorization'];
-                    break;
-                case 'custom':
-                    // For custom headers
-                    if (customHeaderName) {
-                        sessionHeaders[customHeaderName] = headerValue;
-                        headersToRemove = [customHeaderName];
-                    }
-                    break;
-                default: // cookie
-                    sessionHeaders['Cookie'] = headerValue;
-                    headersToRemove = ['Cookie'];
+            // Apply cookie if configured
+            if (this.config.useCookie && this.config.cookieValue) {
+                const cookieValue = this.config.cookieValue.trim();
+                // Remove "Cookie:" prefix if pasted
+                const cleanCookieValue = cookieValue.replace(/^cookie:\s*/i, '');
+                sessionHeaders['Cookie'] = cleanCookieValue;
+                headersToRemove.push('Cookie');
+                console.log('[Auth Analyzer] Adding session cookie');
             }
 
-            // Replay with swapped cookie
+            // Apply custom header if configured
+            if (this.config.useCustomHeader && this.config.customHeaderName && this.config.customHeaderValue) {
+                const headerName = this.config.customHeaderName.trim();
+                let headerValue = this.config.customHeaderValue.trim();
+
+                // Special handling for Authorization header
+                if (headerName.toLowerCase() === 'authorization') {
+                    // Remove "Authorization:" prefix if pasted
+                    headerValue = headerValue.replace(/^authorization:\s*/i, '');
+                    // Auto-add "Bearer " prefix if it looks like a JWT token without it
+                    if (!headerValue.startsWith('Bearer ') && headerValue.match(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/)) {
+                        headerValue = `Bearer ${headerValue}`;
+                    }
+                }
+
+                sessionHeaders[headerName] = headerValue;
+                headersToRemove.push(headerName);
+                console.log(`[Auth Analyzer] Adding custom header: ${headerName}`);
+            }
+
+            // Apply URL parameter swaps if configured (supports multiple parameters)
+            if (this.config.useUrlParam) {
+                const urlParams = this.config.urlParams || [];
+
+                if (urlParams.length > 0) {
+                    try {
+                        const url = new URL(swappedRequest.url);
+
+                        // Process each URL parameter - only replace if it exists in original URL
+                        urlParams.forEach(param => {
+                            if (param.name && param.value) {
+                                const paramName = param.name.trim();
+                                const paramValue = param.value.trim();
+
+                                // Only replace if the parameter already exists in the original URL
+                                if (url.searchParams.has(paramName)) {
+                                    url.searchParams.set(paramName, paramValue);
+                                    console.log(`[Auth Analyzer] Swapped URL parameter ${paramName} = ${paramValue}`);
+                                } else {
+                                    console.log(`[Auth Analyzer] Skipping parameter ${paramName} - not found in original URL`);
+                                }
+                            }
+                        });
+
+                        swappedRequest.url = url.toString();
+                    } catch (error) {
+                        console.error('[Auth Analyzer] Failed to swap URL parameters:', error);
+                    }
+                }
+            }
+
+            // Validate at least one authentication method is configured
+            if (Object.keys(sessionHeaders).length === 0 && !this.config.useUrlParam) {
+                console.warn('[Auth Analyzer] No headers configured, skipping analysis');
+                return;
+            }
+
+            // Replay with swapped headers
             console.log('[Auth Analyzer] Calling replayer with session:', {
-                headerType,
-                customHeaderName,
+                sessionHeadersApplied: Object.keys(sessionHeaders),
                 sessionHeaders
             });
 
@@ -260,7 +302,13 @@ export class AuthAnalyzer {
                 originalRequest: request,
                 originalResponse,  // Store the constructed response
                 swappedResponse,
-                comparison
+                comparison,
+                // Swapped request details for debugging/export
+                swappedRequest: {
+                    url: swappedRequest.url,
+                    method: swappedRequest.method,
+                    headers: sessionHeaders
+                }
             };
 
             this.results.push(result);
@@ -280,6 +328,73 @@ export class AuthAnalyzer {
             // Import and call renderRequestList to force UI update
             import('../../ui/request-list.js').then(({ renderRequestList }) => {
                 renderRequestList();
+            });
+
+            // Add the swapped request/response as a new entry in the request history
+            import('../../core/state/index.js').then(({ addRequest }) => {
+                // Merge original headers with swapped auth headers
+                const originalHeaders = request.headers || request.request?.headers || {};
+
+                // Convert headers to array format - could be object or array
+                let headersArray;
+                if (Array.isArray(originalHeaders)) {
+                    headersArray = originalHeaders;
+                } else if (typeof originalHeaders === 'object') {
+                    // Convert object to array of {name, value} pairs
+                    headersArray = Object.entries(originalHeaders).map(([name, value]) => ({ name, value }));
+                } else {
+                    headersArray = [];
+                }
+
+                const mergedHeaders = [...headersArray];
+
+                // Add/replace with swapped auth headers
+                Object.entries(sessionHeaders).forEach(([name, value]) => {
+                    const existingIndex = mergedHeaders.findIndex(h => h.name && h.name.toLowerCase() === name.toLowerCase());
+                    if (existingIndex >= 0) {
+                        mergedHeaders[existingIndex] = { name, value };
+                    } else {
+                        mergedHeaders.push({ name, value });
+                    }
+                });
+
+                const syntheticRequest = {
+                    id: `swapped_${result.id}`,
+                    url: swappedRequest.url,
+                    method: swappedRequest.method,
+                    timestamp: Date.now(),
+                    request: {
+                        url: swappedRequest.url,
+                        method: swappedRequest.method,
+                        headers: mergedHeaders,
+                        body: swappedRequest.body || null,
+                        postData: swappedRequest.body ? {
+                            mimeType: request.request?.postData?.mimeType || 'application/x-www-form-urlencoded',
+                            text: swappedRequest.body
+                        } : null
+                    },
+                    response: {
+                        status: swappedResponse.status,
+                        statusText: swappedResponse.statusText || '',
+                        headers: swappedResponse.headers || [],
+                        body: swappedResponse.body || ''
+                    },
+                    responseStatus: swappedResponse.status,
+                    responseBody: swappedResponse.body || '',
+                    // Mark as swapped for visual indication
+                    isSwapped: true,
+                    authComparison: comparison
+                };
+
+                // Add to state
+                addRequest(syntheticRequest);
+
+                // Select and display the new request
+                import('../../core/state/index.js').then((stateModule) => {
+                    stateModule.state.selectedRequest = syntheticRequest;
+                    // Trigger UI update
+                    import('../../ui/request-list.js').then(({ renderRequestList }) => renderRequestList());
+                });
             });
 
             return result;

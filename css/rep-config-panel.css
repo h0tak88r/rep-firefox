@@ -1,0 +1,33 @@
+/* rep+ Configuration Panel - Centered Modal Style (same as Auth Analyzer) */
+#rep-config-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    width: 500px;
+    max-width: 90vw;
+    height: auto;
+    max-height: 85vh;
+    background: #1a1a1a;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    display: none;
+    flex-direction: column;
+    z-index: 2000;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+}
+
+/* Modal Overlay Backdrop */
+#rep-config-panel::before {
+    content: '';
+    position: fixed;
+    top: -100vh;
+    left: -100vw;
+    width: 300vw;
+    height: 300vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: -1;
+    pointer-events: none;
+}

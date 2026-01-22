@@ -66,7 +66,7 @@ export class AuthAnalyzerPanel {
         this.panel.id = 'auth-analyzer-panel';
         this.panel.className = 'side-panel';
         this.panel.innerHTML = `
-            <div class="side-panel-header">
+            <div class="side-panel-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <h3>🔒 Auth Analyzer Results</h3>
                 <div style="display: flex; gap: 8px;">
                     <button id="auth-panel-export-btn" class="icon-btn" title="Export Results" style="color: var(--text-secondary); padding: 4px; position: relative;">
@@ -305,7 +305,12 @@ export class AuthAnalyzerPanel {
                 comparison: result.comparison,
                 timestamp: new Date(result.timestamp).toISOString(),
                 originalBody: (req.response?.body || '').substring(0, 1000),
-                swappedBody: (result.swappedResponse?.body || '').substring(0, 1000)
+                swappedBody: (result.swappedResponse?.body || '').substring(0, 1000),
+                // Include swapped request details
+                swappedRequest: result.swappedRequest || {
+                    url,
+                    headers: {}
+                }
             };
         });
 

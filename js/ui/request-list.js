@@ -156,7 +156,7 @@ export function createDomainGroup(hostname, isThirdParty = false) {
     header.addEventListener('click', (e) => {
         // Don't toggle if clicking on buttons
         if (e.target.closest('.group-star-btn') || e.target.closest('.group-delete-btn')) return;
-        
+
         group.classList.toggle('expanded');
         const toggle = header.querySelector('.group-toggle');
         toggle.textContent = group.classList.contains('expanded') ? '▼' : '▶';
@@ -221,9 +221,9 @@ export function createRequestItemElement(request, index, categoryData) {
         // Fallback if URL constructor fails
         if (!displayLabel) {
             displayLabel = request.request.url;
-    }
+        }
         urlSpan.appendChild(document.createTextNode(displayLabel));
-    urlSpan.title = request.request.url;
+        urlSpan.title = request.request.url;
     }
 
     // Time span
@@ -493,10 +493,10 @@ export function renderRequestItem(request, index) {
         if (!pathGroup) {
             pathGroup = createPathGroup();
             // Insert path group before domain groups (if any)
-        const firstDomainGroup = pageContent.querySelector('.domain-group');
+            const firstDomainGroup = pageContent.querySelector('.domain-group');
             if (firstDomainGroup) {
                 pageContent.insertBefore(pathGroup, firstDomainGroup);
-        } else {
+            } else {
                 pageContent.appendChild(pathGroup);
             }
         }
@@ -674,7 +674,7 @@ export function filterRequests() {
         // Forcefully remove all groups and items
         const allGroups = requestList.querySelectorAll('.page-group, .domain-group, .path-group, .request-item');
         allGroups.forEach(element => element.remove());
-        
+
         // Check if there's already an empty state
         const emptyState = requestList.querySelector('.empty-state');
         if (!emptyState) {
@@ -765,23 +765,42 @@ export function filterRequests() {
                 matchesSearch = false;
             }
         } else {
-            matchesSearch =
-                urlLower.includes(state.currentSearchTerm) ||
-                method.includes(state.currentSearchTerm.toUpperCase()) ||
-                hostnameLower.includes(state.currentSearchTerm) ||
-                headersTextLower.includes(state.currentSearchTerm) ||
-                bodyTextLower.includes(state.currentSearchTerm) ||
-                nameLower.includes(state.currentSearchTerm);
+            // Normal search mode
+            if (state.hostnameOnlyMode) {
+                // Hostname-only mode: search only in hostname
+                matchesSearch = hostnameLower.includes(state.currentSearchTerm);
+            } else {
+                // Search all mode: search across URL, method, headers, body, name
+                matchesSearch =
+                    urlLower.includes(state.currentSearchTerm) ||
+                    method.includes(state.currentSearchTerm.toUpperCase()) ||
+                    hostnameLower.includes(state.currentSearchTerm) ||
+                    headersTextLower.includes(state.currentSearchTerm) ||
+                    bodyTextLower.includes(state.currentSearchTerm) ||
+                    nameLower.includes(state.currentSearchTerm);
+            }
         }
 
         // Check filter
         let matchesFilter = true;
-        
+
+        // Scope hostname filter (from rep+ Config)
+        if (state.repConfig && state.repConfig.scopeHostnames && state.repConfig.scopeHostnames.length > 0) {
+            const requestHostname = hostnameLower;
+            const matchesScope = state.repConfig.scopeHostnames.some(scopeHost =>
+                requestHostname.includes(scopeHost) || scopeHost.includes(requestHostname)
+            );
+
+            if (!matchesScope) {
+                matchesFilter = false;
+            }
+        }
+
         // Check if method filter is active (multi-select)
         if (state.selectedMethods && state.selectedMethods.size > 0) {
             // First check if the method itself is selected
             const methodMatches = state.selectedMethods.has(method);
-            
+
             // If XHR is selected, also check if request matches XHR criteria
             let xhrMatches = false;
             if (state.selectedMethods.has('XHR')) {
@@ -816,7 +835,7 @@ export function filterRequests() {
 
                 xhrMatches = !isExcludedByContentType && !isExcludedByExtension;
             }
-            
+
             // Match if method is selected OR (XHR is selected AND request matches XHR criteria)
             matchesFilter = methodMatches || xhrMatches;
         } else if (state.currentFilter !== 'all') {
@@ -887,11 +906,11 @@ export function filterRequests() {
     });
 
     // Check if any filters are active (for auto-expand logic)
-    const hasActiveFilters = (state.selectedMethods && state.selectedMethods.size > 0) || 
-                             state.starFilterActive || 
-                             state.currentColorFilter !== 'all' || 
-                             state.currentSearchTerm ||
-                             (state.currentFilter !== 'all' && state.currentFilter !== 'starred');
+    const hasActiveFilters = (state.selectedMethods && state.selectedMethods.size > 0) ||
+        state.starFilterActive ||
+        state.currentColorFilter !== 'all' ||
+        state.currentSearchTerm ||
+        (state.currentFilter !== 'all' && state.currentFilter !== 'starred');
 
     // Update domain groups visibility (third-party domains)
     const domainGroups = requestList.querySelectorAll('.domain-group');
@@ -943,8 +962,8 @@ export function filterRequests() {
     if (regexError && state.useRegex && state.currentSearchTerm) {
         events.emit('ui:regex-error', { hasError: true, message: 'Invalid regex pattern' });
     } else {
-        events.emit('ui:regex-error', { 
-            hasError: false, 
+        events.emit('ui:regex-error', {
+            hasError: false,
             message: state.useRegex
                 ? 'Regex mode enabled (click to disable)'
                 : 'Toggle Regex Mode (enable to use regex patterns)'

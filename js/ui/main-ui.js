@@ -45,19 +45,19 @@ export function initUI() {
     elements.showSidebarBtn = document.getElementById('show-sidebar-btn');
     elements.llmChatToggleBtn = document.getElementById('llm-chat-toggle-btn');
     elements.llmChatPane = document.getElementById('llm-chat-pane');
-    
+
     // Filter elements
     elements.methodFilterBtn = document.getElementById('method-filter-btn');
     elements.methodFilterLabel = document.getElementById('method-filter-label');
     elements.methodFilterMenu = document.getElementById('method-filter-menu');
     elements.methodSelectAllBtn = document.getElementById('method-select-all');
     elements.methodClearAllBtn = document.getElementById('method-clear-all');
-    
+
     // Block controls
     elements.blockToggleBtn = document.getElementById('block-toggle-btn');
     elements.forwardBtn = document.getElementById('forward-btn');
     elements.forwardMenu = document.getElementById('forward-menu');
-    
+
     // Request editor elements
     elements.rawRequestTextarea = document.getElementById('raw-request-textarea');
     elements.reqViewPretty = document.getElementById('req-view-pretty');
@@ -67,7 +67,7 @@ export function initUI() {
     elements.resViewPreview = document.getElementById('res-view-preview');
     elements.responsePreviewIframe = document.getElementById('response-preview-iframe');
     elements.previewAllowScriptsCheckbox = document.getElementById('preview-allow-scripts');
-    
+
     // Banner elements
     elements.promoBanner = document.getElementById('promo-banner');
     elements.closeBannerBtn = document.getElementById('close-banner');
@@ -229,7 +229,7 @@ function setupEventListeners() {
         if (elements.rawRequestInput) {
             elements.rawRequestInput.innerHTML = rawText;
         }
-        
+
         // Also update raw textarea if it exists (for raw view)
         if (elements.rawRequestTextarea) {
             // Extract plain text from HTML (remove highlighting)
@@ -350,7 +350,7 @@ function setupEventListeners() {
                 const starBtn = item.querySelector('.star-btn');
                 if (starBtn) {
                     starBtn.classList.toggle('active', starred);
-                    starBtn.innerHTML = starred ? 
+                    starBtn.innerHTML = starred ?
                         '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>' :
                         '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M22 9.24l-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03L22 9.24zM12 15.4l-3.76 2.27 1-4.28-3.32-2.88 4.38-.38L12 6.1l1.71 4.01 4.38.38-3.32 2.88 1 4.28L12 15.4z"/></svg>';
                     starBtn.title = starred ? 'Unstar' : 'Star request';
